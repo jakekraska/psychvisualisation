@@ -5,14 +5,14 @@ library(tidyr)
 library(stringr)
 library(readr)
 library(shinyjs)
-# library(colourpicker)
+library(colourpicker)
 library(shinythemes)
 
 #### Functions ####
 
 source("agecalculator.R")
 
-recodechc <- function(col) {
+RecodeCHC <- function(col) {
   recode(col,
          "g" = "General Ability",
          "Gf/Gv" = "Fluid Reasoning and Visual Processing",
@@ -108,14 +108,14 @@ composites <- read_csv("composites.csv")
 composites[is.na(composites)] <- 0
 composites$name <- paste(composites$test, composites$composite, sep = " ")
 names(composites)[names(composites) == 'composite'] <- 'scale'
-composites$chcfull <- recodechc(composites$chc)
+composites$chcfull <- RecodeCHC(composites$chc)
 
 # Load subtests and prepare for Shiny
 subtests <- read_csv("subtests.csv")
 subtests[is.na(subtests)] <- 0
 subtests$name <- paste(subtests$test, subtests$subtest, sep = " ")
 names(subtests)[names(subtests) == 'subtest'] <- 'scale'
-subtests$chcfull <- recodechc(subtests$chc)
+subtests$chcfull <- RecodeCHC(subtests$chc)
 
 # Load conners and prepare for shiny
 conners <- read_csv("conners.csv")
