@@ -1,0 +1,19 @@
+form,scale,minage,maxage,sem6,sem7,sem8,sem9,sem10,sem11,sem12,sem13,sem14,sem15,sem16,sem17,sem18
+Parent,Inattention,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Parent,Hyperactivity/Impulsivity,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Parent,Learning Problems,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Parent,Executive Functioning,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Parent,Defiance/Aggression,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Parent,Peer Relations,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Self,Inattention,8,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Self,Hyperactivity/Impulsivity,8,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Self,Learning Problems,8,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Self,Defiance/Aggression,8,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Self,Family Relations,8,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Inattention,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Hyperactivity/Impulsivity,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Learning Problems/Executive Functioning,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Learning Problems,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Executive Functioning,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Defiance/Aggression,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
+Teacher,Peer Relations,6,16,6,7,8,9,10,11,12,13,14,15,16,17,18
