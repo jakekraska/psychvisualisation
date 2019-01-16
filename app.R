@@ -1,3 +1,5 @@
+#### Load Libraries ####
+
 library(shiny)
 library(ggplot2)
 library(dplyr)
@@ -11,95 +13,10 @@ library(shinythemes)
 #### Functions ####
 
 source("agecalculator.R")
-
-RecodeCHC <- function(col) {
-  recode(col,
-         "g" = "General Ability",
-         "Gf/Gv" = "Fluid Reasoning and Visual Processing",
-         "Gc" = "Comprehension-Knowledge",
-         "Gc:CM" = "Communication Ability",
-         "Gc:K0" = "General Verbal Information",
-         "Gc:VL" = "Lexical Knowledge",
-         "Gc:LD" = "Language Development",
-         "Gc:LS" = "Listening Ability",
-         "Gc:MY" = "Grammatical Sensitivity",
-         "Gf" = "Fluid Reasoning",
-         "Gf:I" = "Induction",
-         "Gf:RG" = "General Sequential Reasoning",
-         "Gf:RQ" = "Quantitative Reasoning",
-         "Gf:RE" = "Reasoning Speed",
-         "Gf:RP" = "Piagetian Reasoning",
-         "Glr" = "Long-Term Storage and Retrieval",
-         "Gl" = "Learning Efficiency",
-         "Gr" = "Retrieval Fluency",
-         "Gr:FF" = "Figural Fluency",
-         "Gr:FE" = "Expressional Fluency",
-         "Gr:FA" = "Associational Fluency",
-         "Gr:SP" = "Alternative Solution Fluency",
-         "Gr:FO" = "Creativity",
-         "Gr:LA" = "Speed of Lexical Access",
-         "Gr:FX" = "Figural Flexibility",
-         "Gr:FI" = "Ideational Fluency",
-         "Gr:FW" = "Word Fluency",
-         "Gr:NA" = "Naming Facility",
-         "Gl:M6" = "Free-recall Memory",
-         "Gl:MA" = "Associative Memory",
-         "Gl:MM" = "Meaningful Memory",
-         "Gwm" = "Short-Term Working Memory",
-         "Gwm:Wa" = "Auditory Short-Term Storage",
-         "Gwm:Wv" = "Visual-Spatial Short-Term Storage",
-         "Gwm:AC" = "Attentional Control",
-         "Gwm:Wc" = "Working Memory Capacity",
-         "Gv" = "Visual-Spatial Processing",
-         "Gv:Vz" = "Visualization",
-         "Gv:SR" = "Speeded Rotation",
-         "Gv:IM" = "Imagery",
-         "Gv:CS" = "Closure Speed",
-         "Gv:CF" = "Flexibility of Closure",
-         "Gv:MV" = "Visual Memory",
-         "Gv:SS" = "Spatial Scanning",
-         "Gv:PI" = "Serial Perceptual Integration",
-         "Gv:LE" = "Length Estimation",
-         "Gv:IL" = "Perceptual Illuisions",
-         "Gv:PN" = "Perceptual Alterations",
-         "Gv:P" = "Perceptual Speed",
-         "Ga" = "Auditory Processing",
-         "Ga:PC" = "Phonetic Coding",
-         "Ga:US" = "Speech Sound Discrimination",
-         "Ga:UR" = "Resistance ot Auditory Stimulus Distortion",
-         "Ga:U8" = "Maintaining and Judging Rhythm",
-         "Ga:UM" = "Memory for Sound Patterns",
-         "Ga:U1U9" = "Musical Discrimination and Judgement",
-         "Ga:UP" = "Absolute Pitch",
-         "Ga:UL" = "Sound Localisation",
-         "Gkn" = "Domain Specific Knowledge",
-         "Gkn:K1" = "General Science Information",
-         "Gkn:K2" = "Knowledge of Culture",
-         "Gkn:MK" = "Mechanical Knowledge",
-         "Gkn:KL" = "Foreign Language Proficiency",
-         "Gkn:KF" = "Knowledge of Signing",
-         "Gkn:LP" = "Skill in Lip Reading",
-         "Grw" = "Reading and Writing",
-         "Grw:RC" = "Reading Comprehension",
-         "Grw:RD" = "Reading Decoding",
-         "Grw:RS" = "Reading Speed",
-         "Grw:WA" = "Writing Ability",
-         "Grw:SG" = "Spelling Ability",
-         "Grw:WS" = "Writing Speed",
-         "Grw:EU" = "English Usage",
-         "Gq" = "Quantiative Knowledge",
-         "Gq:KM" = "Mathematical Knowledge",
-         "Gq:A3" = "Mathematical Achievement",
-         "Gs" = "Processing Speed",
-         "Gs:P" = "Perceptual Speed",
-         "Gs:Ps" = "Perceptual Speed Search",
-         "Gs:Pc" = "Perceptual Speed Compare",
-         "Gs:N" = "Number Facility",
-         "Gs:RS" = "Reading Speed",
-         "Gs:WS" = "Writing Speed",
-         "ACH" = "Achievement"
-  )
-}
+source("recodechc.R")
+source("convertscore.R")
+source("presentinputs.R")
+source("convertsem.R")
 
 #### Load Data ####
 
@@ -142,47 +59,47 @@ ui <- navbarPage(
   #### Home Page UI ####
   
   tabPanel("Home", 
-           fluidRow(column(width = 11, offset = 1,
+           fluidRow(column(width = 12,
                            themeSelector(),
                            includeHTML("introduction.html"),
                            hr(),
                            includeHTML("assessment.html"))),
-           fluidRow(column(width = 4, offset = 1,
+           fluidRow(column(width = 4,
                            textInput('clientName', "First Name", placeholder = "John"),
                            dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01")),
-                    column(width = 3),
-                    column(width = 3))),
+                    column(width = 4),
+                    column(width = 4))),
   
   #### CHC UI ####
   
   tabPanel("CHC",
-           fluidRow(column(width = 5, offset = 1,
-                           dateInput("chcAxDate", "Date of Assessment", max = Sys.Date() + 1, format = "dd/mm/yyyy"),
-                           textOutput("chcAge")),
+           fluidRow(column(width = 2,
+                           dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy"),
+                           textOutput("chcAxAge"),
+                           br(),
+                           sliderInput("chcNAdditionalTests", "Number of Additional Tests",value = 0, min = 0, max = 5, step = 1),
+                           uiOutput("chcAdditionalAxInputs"),
+                           verbatimTextOutput("chcAgesTest"),
+                           verbatimTextOutput("chcAgesClassTest"),
+                           verbatimTextOutput("chcDatesTest"),
+                           uiOutput("chcTests")),
                     column(width = 3,
-                           numericInput("chcNAdditionalTests", "Number of Additional Tests",value = 0, min = 0, max = 5),
-                           uiOutput("chcAdditionalAxInputs"))),
-           fluidRow(column(width = 5, offset = 1,
-                           hr(),
-                           uiOutput("chcTests"),
                            uiOutput("chcComposites"),
-                           uiOutput("chcSubtests"),
-                           uiOutput("chcPlotOptions"),
-                           uiOutput("chcColourOptions"),
-                           uiOutput("executeCHCPlot")),
-                    column(width = 3,
-                           hr(),
                            uiOutput("chcCompositeScores")),
                     column(width = 3,
-                           hr(),
-                           uiOutput("chcSubtestScores"))),
+                           uiOutput("chcSubtests"),
+                           uiOutput("chcSubtestScores")),
+                    column(width = 4,
+                           uiOutput("chcPlotOptions"),
+                           uiOutput("chcColourOptions"),
+                           uiOutput("executeCHCPlot"))),
            fluidRow(column(width = 10, offset = 1,
                            hr(),
                            uiOutput("chcPlotUI"),
-                           downloadButton("downloadCHCPlot")
-                           # hr(),
-                           # tableOutput("chcDataTable")
-                           ))),
+                           downloadButton("downloadCHCPlot"),
+                           tableOutput("chcDataTable"),
+                           textOutput("chcClasses")
+           ))),
   
   #### Conners-3 UI ####
   
@@ -206,14 +123,11 @@ ui <- navbarPage(
                            # hr(),
                            # tableOutput("connersDataTable"),
                            # uiOutput("connersClasses")
-                           ))))
+           ))))
 
 #### Server ####
 
 server <- function(input, output, session) {
-  
-  # Set up plots reactive value
-  plots <- reactiveValues()
   
   #### Client Name ####
   
@@ -222,46 +136,9 @@ server <- function(input, output, session) {
     input$clientName
   })
   
-  #### CHC Calculate Age ####
+  #### Plots Reactive Values ####
   
-  chcAge <- reactive({
-    as.character(floor(age_calc(input$assesseeDOB, input$chcAxDate, units = "years")))
-  })
-  
-  output$chcAge <- renderText({
-    if (clientName() == "") {
-      paste("Assessee is ", chcAge(), " years old.")
-    } else {
-      paste(clientName(), " is ", chcAge(), " years old.") 
-    }
-  })
-  
-  #### CHC Additional Assessment Options ####
-  
-  chcAdditionalTests <- reactive({
-    if (input$chcNAdditionalTests < 1) {
-      FALSE
-    } else if (is.null(input$chcNAdditionalTests)) {
-      FALSE
-    } else {
-      TRUE
-    }
-  })
-  
-  chcRandomDates <- reactive({
-    sample(2000:2017, input$chcNAdditionalTests)
-  })
-  
-  output$chcAdditionalAxInputs <- renderUI({
-    hide("chcPlot")
-    hide("downloadCHCPlot")
-    if (!chcAdditionalTests()) {
-      return()
-    } else {
-      lapply(1:input$chcNAdditionalTests, function(i) {
-        dateInput(paste("chcAssessmentYear",i+1,sep=""),"Assessment Date",value = paste(chcRandomDates()[i],"-01-01",sep=""),max = Sys.Date() + 1, format = "dd/mm/yyyy")})
-    }
-  })
+  plots <- reactiveValues()
   
   #### CHC Number of Assessment Dates ####
   
@@ -269,32 +146,94 @@ server <- function(input, output, session) {
     input$chcNAdditionalTests + 1
   })
   
+  #### CHC Main Assessment Age ####
+  
+  output$chcAxAge <- reactive({
+    if (clientName() == "") {
+      paste("Assessee was ", chcAges()[1], " years old.")
+    } else {
+      paste(clientName(), " was ", chcAges()[1], " years old.") 
+    }
+  })
+  
+  #### CHC Additional Date Inputs ####
+  
+  chcRandomDates <- reactive({
+    min <- format(input$assesseeDOB,"%Y")
+    min <- as.numeric(min) + 1
+    max <- format(Sys.Date(), "%Y")
+    sample(min:max, input$chcNAdditionalTests)
+  })
+  
+  output$chcAdditionalAxInputs <- renderUI({
+    hide("chcPlot")
+    hide("downloadCHCPlot")
+    if (chcNAssessments() > 1) {
+      lapply(1:input$chcNAdditionalTests, function(i) {
+        dateInput(paste0("chcAssessmentDate",i+1),"Assessment Date",value = paste0(chcRandomDates()[i],"-01-01"), max = Sys.Date() + 1, format = "dd/mm/yyyy")
+      })
+    }
+  })
+  
+  # chcDatesTest <- reactive({
+  #   firstdate <- input$chcAxDate
+  #   dateset <- sapply(1:input$chcNAdditionalTests, function(i) {
+  #     input[[paste0("chcAssessmentDate",i+1)]]
+  #   })
+  #   c(firstdate,dateset)
+  # })
+  # 
+  # output$chcDatesTest <- renderText(chcDatesTest())
+  
+  #### CHC Calculate Age ####
+  
+  chcAges <- reactive({
+    req(input$assesseeDOB,input$chcAxDate,1,input$chcNAdditionalTests)
+    if (chcNAssessments() == 1) {
+      floor(age_calc(input$assesseeDOB, input$chcAxDate))
+    } else if (chcNAssessments() > 1) {
+      firstage <- floor(age_calc(input$assesseeDOB, input$chcAxDate))
+      extraages <- sapply(1:input$chcNAdditionalTests, function(i) {
+        floor(age_calc(input$assesseeDOB, input[[paste0("chcAssessmentDate",i+1)]]))
+      })
+      c(firstage,extraages)
+    } else {
+      stop("Number of assessments is not a positive integer.")
+    }
+  })
+  
+  # output$chcAgesTest <- renderText(chcAges())
+  # 
+  # chcAgesClasses <- reactive({
+  #   sapply(chcAges(), function(i) {class(i)})
+  # })
+  # 
+  # output$chcAgesClassTest <- renderText(chcAgesClasses())
+  
   #### CHC Test Inputs ####
   
   output$chcTests <- renderUI({
+    req(chcNAssessments(),chcAges())
     lapply(1:chcNAssessments(), function(i){
       if (i == 1) {
         label <- format(input$chcAxDate,"%Y")
       } else {
-        label <- format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
+        label <- format(input[[paste0("chcAssessmentDate",i)]], "%Y")
       }
-      selectizeInput(paste("chcTests",i,sep=""),paste("Tests from ", label, sep = ""), width = "90%", choices = unique(rbind(composites,subtests)$test), multiple = TRUE, options = list(placeholder = "Test"))
+      choices <- rbind(composites,subtests)
+      choices <- filter(choices, chcAges()[i] >= minage, chcAges()[i] <= maxage)
+      selectizeInput(paste("chcTests",i,sep=""),paste("Tests from ", label, sep = ""), choices = unique(choices$test), multiple = TRUE, options = list(placeholder = "Test"))
     })
   })
   
   #### CHC Check Test Inputs ####
   
   chcTestsCheck <- reactive({
-    check <- lapply(1:chcNAssessments(), function(i){
-      chcTestsid <- paste("chcTests",i,sep="")
-      if (is.null(input[[chcTestsid]]) || input[[chcTestsid]] == "") {FALSE} else {TRUE} 
+    check <- sapply(1:chcNAssessments(), function(i){
+      chcTestsID <- paste0("chcTests",i)
+      if (is.null(input[[chcTestsID]]) || input[[chcTestsID]] == "") {FALSE} else {TRUE} 
     })
-    if (length(check) > 0) {
-      do.call(rbind,check)
-      all(check)
-    } else {
-      check
-    }
+    all(check)
   })
   
   #### CHC Composite Selection ####
@@ -305,11 +244,11 @@ server <- function(input, output, session) {
         if (i == 1) {
           label <- format(input$chcAxDate,"%Y")
         } else {
-          label <-  format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
+          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
         }
-        chcTestsid <- paste("chcTests",i,sep="")
-        availablecomposites <- subset(composites, test %in% input[[chcTestsid]])
-        selectizeInput(paste("chcComposites",i,sep=""),paste("Composites from ", label, sep = ""), width = "90%", choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite"))
+        chcTestsID <- paste0("chcTests",i)
+        availablecomposites <- subset(composites, test %in% input[[chcTestsID]])
+        selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite"))
       })
     }
   })
@@ -322,11 +261,11 @@ server <- function(input, output, session) {
         if (i == 1) {
           label <- format(input$chcAxDate,"%Y")
         } else {
-          label <-  format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
+          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
         }
-        chcTestsid <- paste("chcTests",i,sep="")
-        availablesubtests <- subset(subtests, test %in% input[[chcTestsid]])
-        selectizeInput(paste("chcSubtests",i,sep=""),paste("Subtests from ", label, sep = ""), width = "90%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))
+        chcTestsID <- paste0("chcTests",i)
+        availablesubtests <- subset(subtests, test %in% input[[chcTestsID]])
+        selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))
       })
     }
   })
@@ -357,6 +296,8 @@ server <- function(input, output, session) {
     }
   })
   
+  scoreTypes <- c("Z" = "z","Standard Score" = "standard", "Scaled Score" = "scaled", "T Score" = "t")
+  
   output$chcPlotOptions <- renderUI({
     if (chcTestsCheck()) {
       tagList(
@@ -365,10 +306,11 @@ server <- function(input, output, session) {
         radioButtons("chcDataLabels", "Score Labels", choices = c("None", "Scores", "Scores + CI"), inline = TRUE),
         radioButtons("chcYearLabel", "Append Year of Assessment to Scale Labels", choices = chcYearLabelOptions(), inline = TRUE),
         #radioButtons("chcNorm", "Normal Curve", choices = c("No", "Yes"), inline = TRUE),
+        radioButtons("presentationType", "Score Type to Plot", choices = scoreTypes, selected = "standard", inline = TRUE),
         radioButtons("chcOrganise", "Sort Graph", choices = chcSortOptions(), inline = TRUE),
         radioButtons("chcLabels", "CHC Labels", choices = c("No","Abbreviated","Full"), inline = TRUE),
         radioButtons("chcColourSetup", "Colour Scores", choices = chcColourSelectionOptions(), selected = "Type", inline = TRUE),
-        sliderInput("chcPlotHeight", "Plot Height", min = 1, max = 5, value = 1, step = 1)
+        sliderInput("chcPlotHeight", "Plot Size", min = 1, max = 5, value = 3, step = 1)
       )
     }
   })
@@ -413,17 +355,7 @@ server <- function(input, output, session) {
     }
   })
   
-  output$executeCHCTable <- renderUI({
-    if(chcTestsCheck()) {
-      actionButton("doCHCTable")
-    }
-  })
-  
-
-  
-  #### CHC Composite and Subtest Inputs ####
-  
-  presentinputs <- function(score) {numericInput(score,score,value=100, min = 40, max = 160)}
+  #### CHC Composite Inputs ####
   
   output$chcCompositeScores <- renderUI({
     if (chcTestsCheck()) {
@@ -431,17 +363,22 @@ server <- function(input, output, session) {
         if (i == 1) {
           label <- format(input$chcAxDate,"%Y")
         } else {
-          label <-  format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
+          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
         }
-        compositeinputid <- paste("chcComposites",i,sep="")
+        compositeinputid <- paste0("chcComposites",i)
         if (is.null(input[[compositeinputid]])) {
           return()
         } else {
-          lapply(1:length(input[[compositeinputid]]),function(z){presentinputs(paste(label,input[[compositeinputid]][z], sep = " "))})
+          lapply(1:length(input[[compositeinputid]]), function(z) {
+            type <- paste(select(filter(composites, name == input[[compositeinputid]][z]), scoretype))
+            PresentInputs(type, paste(label, input[[compositeinputid]][z], sep = " "))
+          })
         }
       })
     }
   })
+  
+  #### CHC Subtest Inputs ####
   
   output$chcSubtestScores <- renderUI({
     if (chcTestsCheck()) {
@@ -449,13 +386,16 @@ server <- function(input, output, session) {
         if (i == 1) {
           label <- format(input$chcAxDate,"%Y")
         } else {
-          label <-  format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
+          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
         }
-        subtestinputid <- paste("chcSubtests",i,sep="")
+        subtestinputid <- paste0("chcSubtests",i)
         if (is.null(input[[subtestinputid]])) {
           return()
         } else {
-          lapply(1:length(input[[subtestinputid]]),function(z){presentinputs(paste(label,input[[subtestinputid]][z], sep = " "))})
+          lapply(1:length(input[[subtestinputid]]), function(z) {
+            type <- paste(select(filter(subtests, name == input[[subtestinputid]][z]), scoretype))
+            PresentInputs(type, paste(label, input[[subtestinputid]][z], sep = " "))
+          })
         }
       })
     }
@@ -465,16 +405,17 @@ server <- function(input, output, session) {
   
   chcCompositeData <- eventReactive(input$doCHCPlot, {
     cvalues <- lapply(1:chcNAssessments(), function (i) {
-      if (i == 1)  {
-        label <- format(input$chcAxDate,"%Y")
-      } else {
-        label <-  format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
-      }
+      label <- ifelse(i==1, format(input$chcAxDate,"%Y"), format(input[[paste("chcAssessmentDate",i,sep="")]], "%Y"))
       compositeinputid <- paste("chcComposites",i,sep="")
       if (!is.null(input[[compositeinputid]])) {
-        cvalues <- lapply(input[[compositeinputid]],function(z){
-          temp <- paste(label, z, sep = " ")
-          data.frame(name = as.character(temp), value = input[[temp]], stringsAsFactors = FALSE)
+        cvalues <- lapply(input[[compositeinputid]], function(z) {
+          type <- paste(select(filter(composites, name == z), scoretype))
+          sem <- paste(select(filter(composites, name == z), paste0("sem",chcAges()[i])))
+          name <- paste(label, z, sep = " ")
+          data.frame(name = name, 
+                     value = ConvertScore(score = input[[name]], fromtype = type, totype = input$presentationType), 
+                     sem = ConvertSEM(sem = sem, fromtype = type, totype = input$presentationType),
+                     stringsAsFactors = FALSE)
         })
         cvalues <- do.call(rbind,cvalues)
       }
@@ -492,16 +433,17 @@ server <- function(input, output, session) {
   
   chcSubtestsData <- eventReactive(input$doCHCPlot, {
     svalues <- lapply(1:chcNAssessments(), function (i) {
-      if (i == 1)  {
-        label <- format(input$chcAxDate,"%Y")
-      } else {
-        label <-  format(input[[paste("chcAssessmentYear",i,sep="")]], "%Y")
-      }
+      label <- ifelse(i==1, format(input$chcAxDate,"%Y"), format(input[[paste("chcAssessmentDate",i,sep="")]], "%Y"))
       subtestinputid <- paste("chcSubtests",i,sep="")
       if (!is.null(input[[subtestinputid]])) {
         svalues <- lapply(input[[subtestinputid]],function(z){
-          temp <- paste(label, z, sep = " ")
-          data.frame(name = as.character(temp), value = input[[temp]], stringsAsFactors = FALSE)
+          type <- paste(select(filter(subtests, name == z), scoretype))
+          sem <- paste(select(filter(subtests, name == z), paste0("sem",chcAges()[i])))
+          name <- paste(label, z, sep = " ")
+          data.frame(name = name, 
+                     value = ConvertScore(score = input[[name]], fromtype = type, totype = input$presentationType),
+                     sem = ConvertSEM(sem, fromtype = type, totype = input$presentationType),
+                     stringsAsFactors = FALSE)
         })
         svalues <- do.call(rbind,svalues)
       } 
@@ -518,29 +460,22 @@ server <- function(input, output, session) {
   #### CHC Composites Check ####
   
   chcCompositesCheck <- reactive({
-    check <- lapply(1:chcNAssessments(), function(i){
+    check <- sapply(1:chcNAssessments(), function(i){
       compositeinputid <- paste("chcComposites",i,sep="")
-      if (is.null(input[[compositeinputid]]) || input[[compositeinputid]] == "") {FALSE} else {TRUE} })
-    if (length(check) > 0) {
-      do.call(rbind,check)
-      any(check)
-    } else {
-      check
-    }
+      if (is.null(input[[compositeinputid]]) || input[[compositeinputid]] == "") {FALSE} else {TRUE} 
+    })
+    any(check)
   })
   
   #### CHC Subtests Check ####
   
   chcSubtestsCheck <- reactive({
-    check <- lapply(1:chcNAssessments(), function(i){
+    check <- sapply(1:chcNAssessments(), function(i){
       subtestinputid <- paste("chcSubtests",i,sep="")
-      if (is.null(input[[subtestinputid]]) || input[[subtestinputid]] == "") {FALSE} else {TRUE} })
-    if (length(check) > 0) {
-      do.call(rbind,check)
-      any(check)
-    } else {
-      check
-    }
+      if (is.null(input[[subtestinputid]]) || input[[subtestinputid]] == "") {FALSE} else {TRUE} 
+    })
+    any(check)
+    
   })
   
   #### CHC Data ####
@@ -559,7 +494,7 @@ server <- function(input, output, session) {
     }  
     
     # select the columns
-    chcData <- select(chcData, year, test, scale, name, type, chc, chcfull, value, sem = paste("sem", chcAge(), sep = ""))
+    chcData <- select(chcData, year, test, scale, name, type, chc, chcfull, value, sem)
     
     # Append the year of the assessment
     if (input$chcYearLabel == "Yes") {
@@ -635,9 +570,23 @@ server <- function(input, output, session) {
     show("downloadCHCPlot")
     
     # set values ready for plot
-    average <- c(90,110)
-    mean <- 100
-    sd <- 15
+    if (input$presentationType == "z") {
+      average <- c(-1,1)
+      mean <- 0
+      sd <- 1
+      breaks <- 1
+    } else if (input$presentationType == "scaled") {
+      average <- c(8,12)
+      mean <- 10
+      sd <- 3
+      breaks <- 2
+    } else if (input$presentationType == "standard") {
+      average <- c(90,110)
+      mean <- 100
+      sd <- 15
+      breaks <- 10
+    }
+    
     data <- chcData()
     cname <- clientName()
     z <- as.numeric(subset(ci, ci %in% input$chcConfidence)$z)
@@ -647,10 +596,11 @@ server <- function(input, output, session) {
     ptitle <- if(cname == "") {"Assessment Results"} else {paste(cname, "'s Assessment Results", sep="")}
     caption <- "Plot created with Psychology Test Visualisation by Jake Kraska"
     colours <- chcColours()
+    coloursetup <- input$chcColourSetup
     
     # plot the main data
     if (coloursetup == "Type") {
-      p <- ggplot(data, aes(x = name, y = value, ymin = value- (sem*z), ymax = value + (sem*z), fill = type)) +
+      p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z), fill = type)) +
         scale_fill_manual(values = colours, name = "Scales")
     } else if (coloursetup == "Year & Type") {
       p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z), fill = interaction(year, type, sep = " "))) +
@@ -678,18 +628,33 @@ server <- function(input, output, session) {
             axis.text = element_text(size = 12),
             axis.title = element_text(size = 14, face = "bold"))
     
-    # set the scale of the plot
-    #p <- p + scale_x_discrete(expand = expand_scale(mult = c(.1, .15)))
+    # Set up the plot scale
+    maxDataValue <- max(data$value) + max(data$sem * z)
+    minDataValue <- min(data$value) - max(data$sem * z)
     
-    if (max(data$value) + max(data$sem * z) > 150 | min(data$value) - max(data$sem * z) < 50) {
-      p <- p + scale_y_continuous(breaks = c(40,50,60,70,80,90,100,110,120,130,140,150,160), limits = c(40,160), expand = c(0,0))
-    } else if (max(data$value) + max(data$sem * z) > 140 | min(data$value) - max(data$sem * z) < 60) {
-      p <- p + scale_y_continuous(breaks = c(50,60,70,80,90,100,110,120,130,140,150), limits = c(50,150), expand = c(0,0))
-    } else if (max(data$value) + max(data$sem * z) > 130 | min(data$value) - max(data$sem * z) < 70) {
-      p <- p + scale_y_continuous(breaks = c(60,70,80,90,100,110,120,130,140), limits = c(60,140), expand = c(0,0))
+    if (maxDataValue > mean + (4*sd) | minDataValue < mean - (4*sd)) {
+      max <- 5 * sd
+    } else if (maxDataValue > mean+(3*sd) | minDataValue < mean-(3*sd)) {
+      max <- 4 * sd
+    } else if (maxDataValue > mean+(2*sd) | minDataValue < mean-(2*sd)) {
+      max <- 3 * sd
     } else {
-      p <- p + scale_y_continuous(breaks = c(70,80,90,100,110,120,130), limits = c(70,130), expand = c(0,0))
+      max <- 2 * sd
     }
+    
+    limits <- c(mean - max, mean + max)
+    nBreaks <- max/breaks
+    breaksLow <- sapply(nBreaks:1, function(i) {
+      mean - (i*breaks)
+    })
+    breaksMiddle <- mean
+    breaksHigh <- sapply(1:nBreaks, function(i) {
+      mean + (i*breaks)
+    })
+    breaks <- c(breaksLow,breaksMiddle,breaksHigh)
+    
+    # Place the breaks and limits on the plot
+    p <- p + scale_y_continuous(breaks = breaks, limits = limits, expand = c(0,0))
     
     # Alter plot based on type
     if (type == "Bar") {
@@ -708,9 +673,9 @@ server <- function(input, output, session) {
     } else if (labels == "Scores") {
       p <- p + geom_text(aes(label = value), hjust = -.5)
     } else if (labels == "Scores + CI") {
-      p <- p + 
+      p <- p +
         geom_text(aes(label = value), hjust = -.5) +
-        geom_text(aes(label = round(value-(sem*z), digits = 0), y = value-(sem*z)), hjust = 1.25) + 
+        geom_text(aes(label = round(value-(sem*z), digits = 0), y = value-(sem*z)), hjust = 1.25) +
         geom_text(aes(label = round(value+(sem*z), digits = 0), y = value+(sem*z)), hjust = -.25)
     } else {
       p <- p
@@ -798,10 +763,9 @@ server <- function(input, output, session) {
   # Put colours into a vector
   connersColours <- reactive({
     req(input$connersForms)
-    connersColours <- lapply(1:length(input$connersForms), function(i) {
+    connersColours <- sapply(1:length(input$connersForms), function(i) {
       input[[paste("connersColour",i,sep="")]]
     })
-    unlist(connersColours, recursive = FALSE, use.names = TRUE)
   })
   
   #### Conners Data ####
@@ -889,7 +853,7 @@ server <- function(input, output, session) {
     # Plot main data
     p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem * z), ymax = value + (sem * z), fill = form)) +
       scale_fill_manual(values = colours, name = "Form")
-      
+    
     # Add annotations and ranges
     p <- p + coord_flip() +
       geom_rect(xmin = -Inf, xmax = Inf, ymin = average[1], ymax = average[2], alpha = 0.5, fill = "grey50") +
@@ -948,6 +912,10 @@ server <- function(input, output, session) {
     content = function(file) {
       ggsave(file, plot = plots$connersPlot, width = 50, height = 50, units = "cm", dpi = 320)
     })
+  
+  #### Close Session on Browser Exit ####
+  
+  session$onSessionEnded(stopApp)
   
 }
 

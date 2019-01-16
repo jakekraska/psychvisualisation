@@ -13,6 +13,8 @@ ConvertSEM <- function(sem, fromtype, totype) {
   if(missing(fromtype)) {stop("fromtype argument not provided.")}
   if(missing(totype)) {stop("totype argument not provided.")}
   
+  sem <- as.numeric(sem)
+  
   # Determine n
   if (fromtype == "z") {
     sd <- 1

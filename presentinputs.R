@@ -29,6 +29,6 @@ PresentInputs <- function(type, score) {
     stop("Invalid type of standardised score provided")
   }
   
-  numericInput(score, score, value = value, min = min, max = max)
+  numericInput(score, paste0(score, " (", type, " score)"), width = "100%", value = value, min = min, max = max)
   
 }
