@@ -598,36 +598,6 @@ server <- function(input, output, session) {
     colours <- chcColours()
     coloursetup <- input$chcColourSetup
     
-    # plot the main data
-    if (coloursetup == "Type") {
-      p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z), fill = type)) +
-        scale_fill_manual(values = colours, name = "Scales")
-    } else if (coloursetup == "Year & Type") {
-      p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z), fill = interaction(year, type, sep = " "))) +
-        scale_fill_manual(values = colours, name = "Scales")
-    } else if (coloursetup == "Year") {
-      p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z), fill = year)) +
-        scale_fill_manual(values = colours, name = "Scales")
-    } else {
-      return()
-    }
-    
-    # Add annotations and ranges
-    p <- p + coord_flip() +
-      geom_rect(xmin = -Inf, xmax = Inf, ymin = average[1], ymax = average[2], alpha = 0.5, fill = "grey50") +
-      geom_rect(xmin = -Inf, xmax = Inf, ymin = mean-sd, ymax = average[1], alpha = 0.5, fill = "grey70") +
-      geom_rect(xmin = -Inf, xmax = Inf, ymin = average[2], ymax = mean+sd, alpha = 0.5, fill = "grey70") +
-      geom_hline(yintercept = mean) +
-      geom_hline(yintercept = average[1]) +
-      geom_hline(yintercept = mean - sd) +
-      geom_hline(yintercept = average) +
-      geom_hline(yintercept = mean + sd) +
-      labs(title = ptitle, x = "Scale", y = "Score", caption = caption) +
-      #annotate("text", y = mean, x = length(chcData()$name)+.75, label = "Average") +
-      theme(plot.title = element_text(size = 16, face = "bold"),
-            axis.text = element_text(size = 12),
-            axis.title = element_text(size = 14, face = "bold"))
-    
     # Set up the plot scale
     maxDataValue <- max(data$value) + max(data$sem * z)
     minDataValue <- min(data$value) - max(data$sem * z)
@@ -653,16 +623,47 @@ server <- function(input, output, session) {
     })
     breaks <- c(breaksLow,breaksMiddle,breaksHigh)
     
+    # set up colours
+    if (coloursetup == "Type") {
+      Categories <- data$type
+    } else if (coloursetup == "Year & Type") {
+      Categories <- interaction(data$year, data$type, sep = " ")
+    } else if (coloursetup == "Year") {
+      Categories <- data$year
+    } else {
+      return()
+    }
+    
+    # plot the main data
+    p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z)))
+    
+    # Add annotations and ranges
+    p <- p + coord_flip() +
+      geom_rect(xmin = -Inf, xmax = Inf, ymin = average[1], ymax = average[2], alpha = 0.5, fill = "grey50") +
+      geom_rect(xmin = -Inf, xmax = Inf, ymin = mean-sd, ymax = average[1], alpha = 0.5, fill = "grey70") +
+      geom_rect(xmin = -Inf, xmax = Inf, ymin = average[2], ymax = mean+sd, alpha = 0.5, fill = "grey70") +
+      geom_hline(yintercept = mean) +
+      geom_hline(yintercept = average[1]) +
+      geom_hline(yintercept = mean - sd) +
+      geom_hline(yintercept = average) +
+      geom_hline(yintercept = mean + sd) +
+      labs(title = ptitle, x = "Scale", y = "Score", caption = caption) +
+      #annotate("text", y = mean, x = length(chcData()$name)+.75, label = "Average") +
+      theme(plot.title = element_text(size = 16, face = "bold"),
+            axis.text = element_text(size = 12),
+            axis.title = element_text(size = 14, face = "bold"))
+    
     # Place the breaks and limits on the plot
     p <- p + scale_y_continuous(breaks = breaks, limits = limits, expand = c(0,0))
     
     # Alter plot based on type
     if (type == "Bar") {
-      p <- p + geom_crossbar()
+      p <- p + geom_crossbar(aes(fill = Categories)) +
+        scale_fill_manual(values = colours, name = "Categories")
     } else if (type == "Line") {
-      p <- p + geom_point(aes(colour = type)) +
-        geom_errorbar(aes(colour = type), width = .5) +
-        scale_color_manual(values=colours, name = "Scales")
+      p <- p + geom_point(aes(colour = Categories)) +
+        geom_errorbar(aes(colour = Categories), width = .5) +
+        scale_color_manual(values = colours, name = "Categories")
     } else {
       p <- p
     }
