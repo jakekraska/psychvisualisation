@@ -302,10 +302,10 @@ server <- function(input, output, session) {
         radioButtons("chcConfidence", "Confidence Interval %", choices = ci$ci, inline = TRUE, selected = "95"),
         radioButtons("chcPlotType", "Plot Type", choices = c("Bar", "Line"), inline = TRUE),
         conditionalPanel("input.chcPlotType == 'Line'", 
-                         sliderInput("errorWidth", "Error Bar Width", max = 1, min = .1, step = .1, value = .5),
-                         sliderInput("lineThickness", "Line Thickness", max = 3, min = .2, step = .2, value = 1),
-                         sliderInput("pointSize", "Point Size", max = 4, min = .2, step = .2, value = 2),
-                         sliderInput("pointShape", "Point Shape", max = 25, min = 0, step = 1, value = 16)),
+                         sliderInput("chcErrorWidth", "Error Bar Width", max = 1, min = .1, step = .1, value = .5),
+                         sliderInput("chcLineThickness", "Line Thickness", max = 3, min = .2, step = .2, value = 1),
+                         sliderInput("chcPointSize", "Point Size", max = 4, min = .2, step = .2, value = 2),
+                         sliderInput("chcPointShape", "Point Shape", max = 25, min = 0, step = 1, value = 16)),
         radioButtons("chcDataLabels", "Score Labels", choices = c("None", "Scores", "Scores + CI"), inline = TRUE),
         radioButtons("chcYearLabel", "Append Year of Assessment to Scale Labels", choices = chcYearLabelOptions(), inline = TRUE),
         #radioButtons("chcNorm", "Normal Curve", choices = c("No", "Yes"), inline = TRUE),
@@ -600,10 +600,10 @@ server <- function(input, output, session) {
     caption <- "Plot created with Psychology Test Visualisation by Jake Kraska"
     colours <- chcColours()
     coloursetup <- input$chcColourSetup
-    errorWidth <- input$errorWidth
-    lineThickness <- input$lineThickness
-    pointSize <- input$pointSize
-    pointShape <- input$pointShape
+    chcErrorWidth <- input$chcErrorWidth
+    chcLineThickness <- input$chcLineThickness
+    chcPointSize <- input$chcPointSize
+    chcPointShape <- input$chcPointShape
     
     # Set up the plot scale
     maxDataValue <- max(data$value) + max(data$sem * z)
@@ -668,8 +668,8 @@ server <- function(input, output, session) {
       p <- p + geom_crossbar(aes(fill = Categories)) +
         scale_fill_manual(values = colours, name = "Categories")
     } else if (type == "Line") {
-      p <- p + geom_point(aes(colour = Categories), size = pointSize, shape = pointShape) +
-        geom_errorbar(aes(colour = Categories), size = lineThickness, width = errorWidth) +
+      p <- p + geom_point(aes(colour = Categories), size = chcPointSize, shape = chcPointShape) +
+        geom_errorbar(aes(colour = Categories), size = chcLineThickness, width = chcErrorWidth) +
         scale_color_manual(values = colours, name = "Categories")
     } else {
       p <- p
@@ -753,6 +753,11 @@ server <- function(input, output, session) {
     tagList(
       radioButtons("connersConfidence", "Confidence Interval %", choices = ci$ci, inline = TRUE, selected = "95"),
       radioButtons("connersPlotType", "Plot Type", choices = c("Bar", "Line"), inline = TRUE),
+      conditionalPanel("input.connersPlotType == 'Line'", 
+                       sliderInput("connersErrorWidth", "Error Bar Width", max = 1, min = .1, step = .1, value = .5),
+                       sliderInput("connersLineThickness", "Line Thickness", max = 3, min = .2, step = .2, value = 1),
+                       sliderInput("connersPointSize", "Point Size", max = 4, min = .2, step = .2, value = 2),
+                       sliderInput("connersPointShape", "Point Shape", max = 25, min = 0, step = 1, value = 16)),
       radioButtons("connersDataLabels", "Score Labels", choices = c("None", "Scores", "Scores + CI"), inline = TRUE),
       radioButtons("connersOrganise", "Sort Graph", choices = c("Type","Alphabetical","Value"),selected = "Type", inline = TRUE)
     )
@@ -764,16 +769,17 @@ server <- function(input, output, session) {
   output$connersColourOptions <- renderUI({
     req(input$connersForms)
     lapply(1:length(input$connersForms), function(i) {
-      colourInput(paste("connersColour",i,sep=""),paste("Colour ",i,sep=""),value = paste("rgb(",paste(sample(0:255, size = 3, replace = TRUE), collapse = ","),")", sep = ""))
+      colourInput(paste0("connersColour",i),paste0("Colour ",i),value = paste0("rgb(",paste(sample(0:255, size = 3, replace = TRUE), collapse = ","),")"))
     })
   })
   
   # Put colours into a vector
   connersColours <- reactive({
     req(input$connersForms)
-    connersColours <- sapply(1:length(input$connersForms), function(i) {
-      input[[paste("connersColour",i,sep="")]]
+    connersColours <- lapply(1:length(input$connersForms), function(i) {
+      input[[paste0("connersColour",i)]]
     })
+    unlist(connersColours, recursive = FALSE, use.names = TRUE)
   })
   
   #### Conners Data ####
@@ -857,10 +863,14 @@ server <- function(input, output, session) {
     ptitle <- if(cname == "") {"Assessment Results"} else {paste(cname, "'s Assessment Results", sep="")}
     caption <- "Plot created with Psychology Test Visualisation by Jake Kraska"
     colours <- connersColours()
+    connersErrorWidth <- input$connersErrorWidth
+    connersLineThickness <- input$connersLineThickness
+    connersPointSize <- input$connersPointSize
+    connersPointShape <- input$connersPointShape
     
     # Plot main data
-    p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem * z), ymax = value + (sem * z), fill = form)) +
-      scale_fill_manual(values = colours, name = "Form")
+    p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem * z), ymax = value + (sem * z)))
+      
     
     # Add annotations and ranges
     p <- p + coord_flip() +
@@ -879,16 +889,14 @@ server <- function(input, output, session) {
             axis.title = element_text(size = 14, face = "bold")) +
       scale_y_continuous(breaks=c(0,10,20,30,40,50,60,70,80,90,100), limits = c(0,100), expand = c(0,0))
     
-    # set the scale of the plot
-    #p <- p + scale_x_discrete(expand = expand_scale(mult = c(.1, .15)))
-    
     # Alter plot based on type
     if (type == "Bar") {
-      p <- p + geom_crossbar()
+      p <- p + geom_crossbar(aes(fill = form)) +
+        scale_fill_manual(values = colours, name = "Form")
     } else if (type == "Line") {
-      p <- p + geom_point(aes(colour = form)) +
-        geom_errorbar(aes(colour = form), width = .5) +
-        scale_color_manual(values=colours, name = "Form")
+      p <- p + geom_point(aes(colour = form), size = connersPointSize, shape = connersPointShape) +
+        geom_errorbar(aes(colour = form), size = connersLineThickness, width = connersErrorWidth) +
+        scale_color_manual(values = colours, name = "Form")
     } else {
       p <- p
     }
