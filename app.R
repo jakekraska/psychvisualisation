@@ -303,6 +303,11 @@ server <- function(input, output, session) {
       tagList(
         radioButtons("chcConfidence", "Confidence Interval %", choices = ci$ci, inline = TRUE, selected = "95"),
         radioButtons("chcPlotType", "Plot Type", choices = c("Bar", "Line"), inline = TRUE),
+        conditionalPanel("input.chcPlotType == 'Line'", 
+                         sliderInput("errorWidth", "Error Bar Width", max = 1, min = .1, step = .1, value = .5),
+                         sliderInput("lineThickness", "Line Thickness", max = 3, min = .2, step = .2, value = 1),
+                         sliderInput("pointSize", "Point Size", max = 4, min = .2, step = .2, value = 2),
+                         sliderInput("pointShape", "Point Shape", max = 25, min = 0, step = 1, value = 16)),
         radioButtons("chcDataLabels", "Score Labels", choices = c("None", "Scores", "Scores + CI"), inline = TRUE),
         radioButtons("chcYearLabel", "Append Year of Assessment to Scale Labels", choices = chcYearLabelOptions(), inline = TRUE),
         #radioButtons("chcNorm", "Normal Curve", choices = c("No", "Yes"), inline = TRUE),
@@ -597,6 +602,10 @@ server <- function(input, output, session) {
     caption <- "Plot created with Psychology Test Visualisation by Jake Kraska"
     colours <- chcColours()
     coloursetup <- input$chcColourSetup
+    errorWidth <- input$errorWidth
+    lineThickness <- input$lineThickness
+    pointSize <- input$pointSize
+    pointShape <- input$pointShape
     
     # Set up the plot scale
     maxDataValue <- max(data$value) + max(data$sem * z)
@@ -661,8 +670,8 @@ server <- function(input, output, session) {
       p <- p + geom_crossbar(aes(fill = Categories)) +
         scale_fill_manual(values = colours, name = "Categories")
     } else if (type == "Line") {
-      p <- p + geom_point(aes(colour = Categories)) +
-        geom_errorbar(aes(colour = Categories), width = .5) +
+      p <- p + geom_point(aes(colour = Categories), size = pointSize, shape = pointShape) +
+        geom_errorbar(aes(colour = Categories), size = lineThickness, width = errorWidth) +
         scale_color_manual(values = colours, name = "Categories")
     } else {
       p <- p
