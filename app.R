@@ -59,16 +59,14 @@ ui <- navbarPage(
   #### Home Page UI ####
   
   tabPanel("Home", 
-           fluidRow(column(width = 12,
+           fluidRow(column(width = 4, offset = 1,
                            themeSelector(),
-                           includeHTML("introduction.html"),
-                           hr(),
-                           includeHTML("assessment.html"))),
-           fluidRow(column(width = 4,
+                           includeHTML("introduction.html")),
+                    column(width = 4, offset = 1,
+                           includeHTML("assessment.html"),
                            textInput('clientName', "First Name", placeholder = "John"),
-                           dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01")),
-                    column(width = 4),
-                    column(width = 4))),
+                           dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01"),
+                           radioButtons('assesseeGender', "Gender", choices = c("Female", "Male"), inline = TRUE)))),
   
   #### CHC UI ####
   
@@ -781,21 +779,21 @@ server <- function(input, output, session) {
   #### Conners Data ####
   
   connersData <- eventReactive(input$doConnersPlot, {
+    gender <- if (input$assesseeGender == "Male") {"m"} else if (input$assesseeGender == "Female") {"f"} else {stop("Error in Gender.")}
     req(input$connersForms)
-    connersData <- lapply(input$connersForms, function(i) {
-      dataSubset <- filter(conners, form == i)
-      connersData <- lapply(dataSubset$name, function(z){
-        scaleInputName <- paste(z, "connersInput", sep = "")
-        rowref <- which(dataSubset$name == z)
+    connersData <- lapply(input$connersForms, function(form) {
+      dataSubset <- filter(conners, form == form)
+      connersData <- lapply(dataSubset$name, function(name){
+        scaleInputName <- paste0(name, "connersInput")
+        rowref <- which(dataSubset$name == name)
         data.frame(value = input[[scaleInputName]],
-                   sem = dataSubset[[paste("sem",input[[paste(i,"ConnersAge",sep = "")]], sep = "")]][rowref],
-                   name = z,
+                   sem = dataSubset[[paste0(gender,"sem",input[[paste(form,"ConnersAge",sep = "")]])]][rowref],
+                   name = name,
                    stringsAsFactors = FALSE
         )
       })
       do.call(rbind,connersData)
     })
-    connersData <- do.call(rbind,connersData)
     connersScaleData <- subset(conners, form %in% input$connersForms)
     connersData <- merge(x = connersData, y = connersScaleData)
     connersData <- select(connersData, name, value, sem, form, scale)
