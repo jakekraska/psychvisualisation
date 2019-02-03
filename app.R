@@ -71,11 +71,16 @@ ui <- navbarPage(
   #### CHC UI ####
   
   tabPanel("CHC",
-           fluidRow(column(width = 2,
+           fluidRow(column(width = 3,
+                           tags$h3("Step 2: Main Assessment"),
+                           tags$p("Input the date of the assessment you want to visualise."),
                            dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy"),
                            textOutput("chcAxAge"),
                            br(),
-                           sliderInput("chcNAdditionalTests", "Number of Additional Tests",value = 0, min = 0, max = 5, step = 1),
+                           tags$h3("Step 3: Additional Assessments"),
+                           tags$p("Input the number of additional assessments if applicable. For example, if
+                                  the client was assessed two years ago and you want to compare the results."),
+                           sliderInput("chcNAdditionalTests", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1),
                            uiOutput("chcAdditionalAxInputs"),
                            verbatimTextOutput("chcAgesTest"),
                            verbatimTextOutput("chcAgesClassTest"),
@@ -87,7 +92,7 @@ ui <- navbarPage(
                     column(width = 3,
                            uiOutput("chcSubtests"),
                            uiOutput("chcSubtestScores")),
-                    column(width = 4,
+                    column(width = 3,
                            uiOutput("chcPlotOptions"),
                            uiOutput("chcColourOptions"),
                            uiOutput("executeCHCPlot"))),
@@ -103,6 +108,7 @@ ui <- navbarPage(
   
   tabPanel("Conners-3",
            fluidRow(column(width = 3, offset = 1,
+                           tags$h3("Step 2: Select Forms Administered"),
                            selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")),
                            uiOutput("connersAxDates"),
                            uiOutput("connersAge")),
@@ -160,6 +166,7 @@ server <- function(input, output, session) {
     min <- format(input$assesseeDOB,"%Y")
     min <- as.numeric(min) + 1
     max <- format(Sys.Date(), "%Y")
+    max <- as.numeric(max) - 1
     sample(min:max, input$chcNAdditionalTests)
   })
   
@@ -212,16 +219,22 @@ server <- function(input, output, session) {
   
   output$chcTests <- renderUI({
     req(chcNAssessments(),chcAges())
-    lapply(1:chcNAssessments(), function(i){
-      if (i == 1) {
-        label <- format(input$chcAxDate,"%Y")
-      } else {
-        label <- format(input[[paste0("chcAssessmentDate",i)]], "%Y")
-      }
-      choices <- rbind(composites,subtests)
-      choices <- filter(choices, chcAges()[i] >= minage, chcAges()[i] <= maxage)
-      selectizeInput(paste("chcTests",i,sep=""),paste("Tests from ", label, sep = ""), choices = unique(choices$test), multiple = TRUE, options = list(placeholder = "Test"))
-    })
+    tagList(
+      tags$h3("Step 4: Select Tests"),
+      tags$p("Select the tests that you administered as part of this assessment.
+             If you indicated that there were additional assessments, input boxes 
+             will be avaiable for those dates."),
+      lapply(1:chcNAssessments(), function(i){
+        if (i == 1) {
+          label <- format(input$chcAxDate,"%Y")
+        } else {
+          label <- format(input[[paste0("chcAssessmentDate",i)]], "%Y")
+        }
+        choices <- rbind(composites,subtests)
+        choices <- filter(choices, chcAges()[i] >= minage, chcAges()[i] <= maxage)
+        selectizeInput(paste("chcTests",i,sep=""),paste("Tests from ", label, sep = ""), choices = unique(choices$test), multiple = TRUE, options = list(placeholder = "Test"))
+      })
+    )
   })
   
   #### CHC Check Test Inputs ####
@@ -238,16 +251,19 @@ server <- function(input, output, session) {
   
   output$chcComposites <- renderUI({
     if (chcTestsCheck()) {
-      lapply(1:chcNAssessments(), function(i){
-        if (i == 1) {
-          label <- format(input$chcAxDate,"%Y")
-        } else {
-          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
-        }
-        chcTestsID <- paste0("chcTests",i)
-        availablecomposites <- subset(composites, test %in% input[[chcTestsID]])
-        selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite"))
-      })
+      tagList(
+        tags$h3("Step 5: Select Composites to Visualise"),
+        lapply(1:chcNAssessments(), function(i){
+          if (i == 1) {
+            label <- format(input$chcAxDate,"%Y")
+          } else {
+            label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
+          }
+          chcTestsID <- paste0("chcTests",i)
+          availablecomposites <- subset(composites, test %in% input[[chcTestsID]])
+          selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite"))
+        })
+      )
     }
   })
   
@@ -255,16 +271,19 @@ server <- function(input, output, session) {
   
   output$chcSubtests <- renderUI({
     if (chcTestsCheck()) {
-      lapply(1:chcNAssessments(), function(i){
-        if (i == 1) {
-          label <- format(input$chcAxDate,"%Y")
-        } else {
-          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
-        }
-        chcTestsID <- paste0("chcTests",i)
-        availablesubtests <- subset(subtests, test %in% input[[chcTestsID]])
-        selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))
-      })
+      tagList(
+        tags$h3("Step 6: Select Subtests to Visualise"),
+        lapply(1:chcNAssessments(), function(i){
+          if (i == 1) {
+            label <- format(input$chcAxDate,"%Y")
+          } else {
+            label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
+          }
+          chcTestsID <- paste0("chcTests",i)
+          availablesubtests <- subset(subtests, test %in% input[[chcTestsID]])
+          selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))
+        })
+      )
     }
   })
   
@@ -299,6 +318,7 @@ server <- function(input, output, session) {
   output$chcPlotOptions <- renderUI({
     if (chcTestsCheck()) {
       tagList(
+        tags$h3("Step 7: Select Visualisation Options"),
         radioButtons("chcConfidence", "Confidence Interval %", choices = ci$ci, inline = TRUE, selected = "95"),
         radioButtons("chcPlotType", "Plot Type", choices = c("Bar", "Line"), inline = TRUE),
         conditionalPanel("input.chcPlotType == 'Line'", 
@@ -310,7 +330,7 @@ server <- function(input, output, session) {
         radioButtons("chcYearLabel", "Append Year of Assessment to Scale Labels", choices = chcYearLabelOptions(), inline = TRUE),
         #radioButtons("chcNorm", "Normal Curve", choices = c("No", "Yes"), inline = TRUE),
         radioButtons("presentationType", "Score Type to Plot", choices = scoreTypes, selected = "standard", inline = TRUE),
-        radioButtons("chcOrganise", "Sort Graph", choices = chcSortOptions(), inline = TRUE),
+        selectInput("chcOrganise", "Sort Graph", choices = chcSortOptions()),
         radioButtons("chcLabels", "CHC Labels", choices = c("No","Abbreviated","Full"), inline = TRUE),
         radioButtons("chcColourSetup", "Colour Scores", choices = chcColourSelectionOptions(), selected = "Type", inline = TRUE),
         sliderInput("chcPlotHeight", "Plot Size", min = 1, max = 5, value = 3, step = 1)
@@ -354,7 +374,7 @@ server <- function(input, output, session) {
   
   output$executeCHCPlot <- renderUI({
     if (chcTestsCheck()) {
-      actionButton("doCHCPlot", "Visualise")
+      actionButton("doCHCPlot", "Step 8: Visualise")
     }
   })
   
@@ -729,21 +749,27 @@ server <- function(input, output, session) {
   
   output$connersAxDates <- renderUI({
     req(input$connersForms)
-    lapply(input$connersForms, function(i){
-      sliderInput(paste(i,"ConnersAge", sep = ""), paste("Age at Completion of", i, sep = " "), value = 6, min = 6, max = 18, step = 1)
-    })
+    tagList(
+      tags$h3("Step 3: Select Age of Client"),
+      lapply(input$connersForms, function(i){
+        sliderInput(paste(i,"ConnersAge", sep = ""), paste("Age at Completion of", i, sep = " "), value = 6, min = 6, max = 18, step = 1)
+      })
+    )
   })
   
   #### Conners Scale Inputs ####
   
   output$connersInputs <- renderUI({
     req(input$connersForms)
-    lapply(input$connersForms, function(i){
-      data <- filter(conners, form == i)
-      lapply(data$name, function(name){
-        numericInput(paste(name, "connersInput", sep = ""), paste(name, "Score", sep = " "), value = 50, min = 0, max = 100)
+    tagList(
+      tags$h3("Step 4: Input Scores"),
+      lapply(input$connersForms, function(i){
+        data <- filter(conners, form == i)
+        lapply(data$name, function(name){
+          numericInput(paste(name, "connersInput", sep = ""), paste(name, "Score", sep = " "), value = 50, min = 0, max = 100)
+        })
       })
-    })
+    )
   })
   
   #### Conners Options ####
@@ -751,6 +777,7 @@ server <- function(input, output, session) {
   output$connersPlotOptions <- renderUI({
     req(input$connersForms)
     tagList(
+      tags$h3("Step 5: Select Visualisation Options"),
       radioButtons("connersConfidence", "Confidence Interval %", choices = ci$ci, inline = TRUE, selected = "95"),
       radioButtons("connersPlotType", "Plot Type", choices = c("Bar", "Line"), inline = TRUE),
       conditionalPanel("input.connersPlotType == 'Line'", 
@@ -832,7 +859,7 @@ server <- function(input, output, session) {
   
   output$executeConnersPlot <- renderUI({
     req(input$connersForms)
-    actionButton('doConnersPlot', "Visualise")
+    actionButton('doConnersPlot', "Step 6: Visualise")
   })
   
   #### Conners Plot ####
@@ -870,7 +897,7 @@ server <- function(input, output, session) {
     
     # Plot main data
     p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem * z), ymax = value + (sem * z)))
-      
+    
     
     # Add annotations and ranges
     p <- p + coord_flip() +
