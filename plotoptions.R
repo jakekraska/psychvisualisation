@@ -1,4 +1,4 @@
-PlotOptions <- function(tool, 
+PlotOptions <- function(tool = NULL, 
                         sortoptions = c("Default", "Alphabetical"), 
                         colourselection = c("Type"),
                         yearlabels = c("No", "Yes"),
@@ -30,6 +30,8 @@ PlotOptions <- function(tool,
   #   chclabels: boolean to determine if chclabel options should be available (suitable only for CHC data), default is false
   #   coloursetup: boolean to determine if colour options should be available, default is false
   #   plotheight: boolean to determine if height options should be available, default is false
+  # Returns:
+  #   Shiny input options for plots
   
   # Check for missing arguments
   if(missing(tool)) {stop("Tool argument not provided.")}
