@@ -101,20 +101,9 @@ ui <- navbarPage(
   
   tabPanel("CHC",
            fluidRow(column(width = 3,
-                           tags$h3("Step 3: Main Assessment"),
-                           dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy") %>% 
-                             bs_embed_tooltip(title = "Input the date of the main assessment you want to visualise. This date
-                                              may represent multiple tests. For example, you may have administered a WISC-V 
-                                              and WJ IV.", placement = "right"),
-                           tags$h3("Step 4: Additional Assessments"),
-                           sliderInput("chcNAdditionalAx", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1) %>%
-                             shinyInput_label_embed(
-                               icon("question") %>%
-                                 bs_embed_tooltip(
-                                   title = "Input the number of additional assessments if applicable. For example, if
-                                   the client was assessed two years ago and you have a report that includes a WISC-V 
-                                   and a WIAT-III, select 1 additional assessment.", placement = "right")),
-                           uiOutput("chcAdditionalAxInputs"),
+                           uiOutput("chcMainAssessment"),
+                           uiOutput("chcAdditionalAssessments"),
+                           uiOutput("chcAdditionalAxDates"),
                            uiOutput("chcTests")),
                     column(width = 3,
                            uiOutput("chcComposites"),
@@ -136,12 +125,7 @@ ui <- navbarPage(
   
   tabPanel("Conners-3",
            fluidRow(column(width = 3, offset = 1,
-                           tags$h3("Step 3: Select Forms Administered"),
-                           selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")) %>%
-                             shinyInput_label_embed(
-                               icon("question") %>%
-                                 bs_embed_tooltip(
-                                   title = "Select the forms of the Conners that were administered.", placement = "right")),
+                           uiOutput("connersForms"),
                            uiOutput("connersAxDates"),
                            uiOutput("connersAge")),
                     column(width = 3,
@@ -179,10 +163,16 @@ server <- function(input, output, session) {
   
   plots <- reactiveValues()
   
-  #### CHC Number of Assessment Dates ####
+  #### CHC Main Assessment UI ####
   
-  chcNAssessments <- reactive({
-    input$chcNAdditionalAx + 1
+  output$chcMainAssessment <- renderUI({
+    tagList(
+      tags$h3("Step 3: Main Assessment"),
+      dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy") %>% 
+        bs_embed_tooltip(title = "Input the date of the main assessment you want to visualise. This date
+                       may represent multiple tests. For example, you may have administered a WISC-V 
+                       and WJ IV.", placement = "right")
+    )
   })
   
   #### CHC Main Assessment Age ####
@@ -195,6 +185,27 @@ server <- function(input, output, session) {
     }
   })
   
+  #### CHC Number of Additional Assessments ####
+  
+  output$chcAdditionalAssessments <- renderUI({
+    tagList(
+      tags$h3("Step 4: Additional Assessments"),
+      sliderInput("chcNAdditionalAx", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1) %>%
+        shinyInput_label_embed(
+          icon("question") %>%
+            bs_embed_tooltip(
+              title = "Input the number of additional assessments if applicable. For example, if
+              the client was assessed two years ago and you have a report that includes a WISC-V 
+              and a WIAT-III, select 1 additional assessment.", placement = "right"))
+    )
+  })
+  
+  #### CHC Number of Assessments ####
+  
+  chcNAssessments <- reactive({
+    input$chcNAdditionalAx + 1
+  })
+  
   #### CHC Additional Date Inputs ####
   
   chcRandomDates <- reactive({
@@ -205,7 +216,7 @@ server <- function(input, output, session) {
     sample(min:max, input$chcNAdditionalAx)
   })
   
-  output$chcAdditionalAxInputs <- renderUI({
+  output$chcAdditionalAxDates <- renderUI({
     hide("chcPlot")
     hide("downloadCHCPlot")
     if (chcNAssessments() > 1) {
@@ -278,6 +289,7 @@ server <- function(input, output, session) {
     if (chcTestsCheck()) {
       tagList(
         tags$h3("Step 6: Select Composites to Visualise"),
+        tags$hr(),
         lapply(1:chcNAssessments(), function(i){
           if (i == 1) {
             label <- format(input$chcAxDate,"%Y")
@@ -286,11 +298,14 @@ server <- function(input, output, session) {
           }
           chcTestsID <- paste0("chcTests",i)
           availablecomposites <- subset(composites, test %in% input[[chcTestsID]])
-          selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite")) %>%
-            shinyInput_label_embed(
-              icon("question") %>%
-                bs_embed_tooltip(
-                  title = paste0("Select the composites administered as part of the testing conducted in ", label), placement = "right"))
+          tagList(
+            selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite")) %>%
+              shinyInput_label_embed(
+                icon("question") %>%
+                  bs_embed_tooltip(
+                    title = paste0("Select the composites administered as part of the testing conducted in ", label), placement = "right")),
+            tags$hr()
+          )
         })
       )
     }
@@ -302,6 +317,7 @@ server <- function(input, output, session) {
     if (chcTestsCheck()) {
       tagList(
         tags$h3("Step 7: Select Subtests to Visualise"),
+        tags$hr(),
         lapply(1:chcNAssessments(), function(i){
           if (i == 1) {
             label <- format(input$chcAxDate,"%Y")
@@ -310,13 +326,71 @@ server <- function(input, output, session) {
           }
           chcTestsID <- paste0("chcTests",i)
           availablesubtests <- subset(subtests, test %in% input[[chcTestsID]])
-          selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))%>%
-            shinyInput_label_embed(
-              icon("question") %>%
-                bs_embed_tooltip(
-                  title = paste0("Select the subtests administered as part of the testing conducted in ", label), placement = "right"))
+          tagList(
+            selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))%>%
+              shinyInput_label_embed(
+                icon("question") %>%
+                  bs_embed_tooltip(
+                    title = paste0("Select the subtests administered as part of the testing conducted in ", label), placement = "right")),
+            tags$hr()
+          )
         })
+        
       )
+    }
+  })
+  
+  #### CHC Composite Score Inputs ####
+  
+  output$chcCompositeScores <- renderUI({
+    if (chcTestsCheck()) {
+      lapply(1:chcNAssessments(), function(i) {
+        if (i == 1) {
+          label <- format(input$chcAxDate,"%Y")
+        } else {
+          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
+        }
+        compositeinputid <- paste0("chcComposites",i)
+        if (is.null(input[[compositeinputid]])) {
+          return()
+        } else {
+          tagList(
+            tags$h4(paste0(label," Composites")),
+            lapply(1:length(input[[compositeinputid]]), function(z) {
+              type <- paste(select(filter(composites, name == input[[compositeinputid]][z]), scoretype))
+              PresentInputs(type, paste(label, input[[compositeinputid]][z], sep = " "))
+            }),
+            tags$hr()
+          )
+        }
+      })
+    }
+  })
+  
+  #### CHC Subtest Score Inputs ####
+  
+  output$chcSubtestScores <- renderUI({
+    if (chcTestsCheck()) {
+      lapply(1:chcNAssessments(), function(i) {
+        if (i == 1) {
+          label <- format(input$chcAxDate,"%Y")
+        } else {
+          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
+        }
+        subtestinputid <- paste0("chcSubtests",i)
+        if (is.null(input[[subtestinputid]])) {
+          return()
+        } else {
+          tagList(
+            tags$h4(paste0(label," Subtests")),
+            lapply(1:length(input[[subtestinputid]]), function(z) {
+              type <- paste(select(filter(subtests, name == input[[subtestinputid]][z]), scoretype))
+              PresentInputs(type, paste(label, input[[subtestinputid]][z], sep = " "))
+            }),
+            tags$hr()
+          )
+        }
+      })
     }
   })
   
@@ -372,9 +446,9 @@ server <- function(input, output, session) {
   #### CHC Number of Colours ####
   
   chcNColours <- reactive({
-    if (input$chcColourSetup == "Type") {
+    if (input$chcColourSetup == "Type (ACH/COG)") {
       2
-    } else if (input$chcColourSetup == "Year & Type") {
+    } else if (input$chcColourSetup == "Year & Type (ACH/COG)") {
       chcNAssessments()*2
     } else if (input$chcColourSetup == "Year") {
       chcNAssessments()
@@ -394,11 +468,10 @@ server <- function(input, output, session) {
   
   # put colours into a vector
   chcColours <- reactive({
-    chcColours <- lapply(1:chcNColours(), function(i) {
+    chcColours <- sapply(1:chcNColours(), function(i) {
       colourinputid <- paste("chcColour",i,sep="")
       input[[colourinputid]]
     })
-    unlist(chcColours, recursive = FALSE, use.names = TRUE)
   })
   
   #### CHC Plot Button ####
@@ -406,52 +479,6 @@ server <- function(input, output, session) {
   output$executeCHCPlot <- renderUI({
     if (chcTestsCheck()) {
       actionButton("doCHCPlot", "Step 9: Visualise")
-    }
-  })
-  
-  #### CHC Composite Inputs ####
-  
-  output$chcCompositeScores <- renderUI({
-    if (chcTestsCheck()) {
-      lapply(1:chcNAssessments(), function(i) {
-        if (i == 1) {
-          label <- format(input$chcAxDate,"%Y")
-        } else {
-          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
-        }
-        compositeinputid <- paste0("chcComposites",i)
-        if (is.null(input[[compositeinputid]])) {
-          return()
-        } else {
-          lapply(1:length(input[[compositeinputid]]), function(z) {
-            type <- paste(select(filter(composites, name == input[[compositeinputid]][z]), scoretype))
-            PresentInputs(type, paste(label, input[[compositeinputid]][z], sep = " "))
-          })
-        }
-      })
-    }
-  })
-  
-  #### CHC Subtest Inputs ####
-  
-  output$chcSubtestScores <- renderUI({
-    if (chcTestsCheck()) {
-      lapply(1:chcNAssessments(), function(i) {
-        if (i == 1) {
-          label <- format(input$chcAxDate,"%Y")
-        } else {
-          label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
-        }
-        subtestinputid <- paste0("chcSubtests",i)
-        if (is.null(input[[subtestinputid]])) {
-          return()
-        } else {
-          lapply(1:length(input[[subtestinputid]]), function(z) {
-            type <- paste(select(filter(subtests, name == input[[subtestinputid]][z]), scoretype))
-            PresentInputs(type, paste(label, input[[subtestinputid]][z], sep = " "))
-          })
-        }
-      })
     }
   })
   
@@ -577,9 +604,6 @@ server <- function(input, output, session) {
     } else if (input$chcOrganise == "Type") {
       chcData$name <- factor(chcData$name, levels = chcData$name[order(chcData$type)])
       return(chcData)
-      # } else if (input$organise == "tchc") {
-      #   chcData$name <- factor(chcData$name, levels = chcData$name[order(chcData$type, chcData$chc)])
-      #   return(chcData)
     } else if (input$chcOrganise == "CHC") {
       chcData$name <- factor(chcData$name, levels = chcData$name[order(chcData$chc, decreasing = TRUE)])
       return(chcData)
@@ -629,6 +653,11 @@ server <- function(input, output, session) {
       mean <- 100
       sd <- 15
       breaks <- 10
+    } else if (input$chcPresentationType == "t-score") {
+      average <- c(40,50)
+      mean <- 50
+      sd <- 10
+      breaks <- 10
     }
     
     data <- chcData()
@@ -672,9 +701,9 @@ server <- function(input, output, session) {
     breaks <- c(breaksLow,breaksMiddle,breaksHigh)
     
     # set up colours
-    if (coloursetup == "Type") {
+    if (coloursetup == "Type (ACH/COG)") {
       Categories <- data$type
-    } else if (coloursetup == "Year & Type") {
+    } else if (coloursetup == "Year & Type (ACH/COG)") {
       Categories <- interaction(data$year, data$type, sep = " ")
     } else if (coloursetup == "Year") {
       Categories <- data$year
@@ -765,6 +794,19 @@ server <- function(input, output, session) {
     content = function(file) {
       ggsave(file, plot = plots$chcPlot, width = input$shiny_width/320*5, height = chcPlotHeight()/320*5, dpi = 320)
     })
+  
+  #### Conners Forms UI ####
+  
+  output$connersForms <- renderUI({
+    tagList(
+      tags$h3("Step 3: Select Forms Administered"),
+      selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")) %>%
+        shinyInput_label_embed(
+          icon("question") %>%
+            bs_embed_tooltip(
+              title = "Select the forms of the Conners that were administered.", placement = "right"))
+    )
+  })
   
   #### Conners Form Ages ####
   
