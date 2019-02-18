@@ -70,31 +70,8 @@ ui <- navbarPage(
                            #themeSelector(),
                            includeHTML("introduction.html")),
                     column(width = 4, offset = 1,
-                           tags$h3("Step 1: Assessee Details"),
-                           tags$p("Provide details of the assessee below."),
-                           textInput("clientName", "First Name", placeholder = "John") %>%
-                             shinyInput_label_embed(
-                               icon("question") %>%
-                                 bs_embed_tooltip(
-                                   title = "Input the client's name. This is optional. This is not stored on the server. If
-                                   you provide a name it will be included in the visualisation's header. If you do not provide a name,
-                                   then the plot will be titled 'Assessment Results'", placement = "right")
-                             ),
-                           dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
-                             bs_embed_tooltip(title = "Input the assessee's DOB. This allows the application to calculate
-                                              the appropriate confidence intervals for each visualisation.", placement = "right"),
-                           radioButtons('assesseeGender', "Gender", choices = c("Female", "Male"), inline = TRUE) %>% 
-                             bs_embed_tooltip(title = "Input the assessee's gender This allows the application to calculate
-                                              the appropriate confidence intervals for the Conners visualisation.", placement = "right"),
-                           tags$h3("Step 2: Select Visualisation Tools"),
-                           tags$p("Use the navigation bar at the top of this page to select whether you want to visualise:"),
-                           tags$ul(
-                             tags$li("CHC data from cognitive ability and academic achievemnet tests"),
-                             tags$li("Conners-3 data")
-                           ),
-                           tags$p("On each tab ensure you have the correct Tests, Indexes, Subtests and Options selected prior to visualising.",
-                                  tags$strong("Each change may force the user to re-input scores.")
-                           )
+                           uiOutput("assesseeDetails"),
+                           uiOutput("instructions")
                     ))),
   
   #### CHC UI ####
@@ -152,6 +129,43 @@ ui <- navbarPage(
 
 server <- function(input, output, session) {
   
+  #### Assessee Details ####
+  
+  output$assesseeDetails <- renderUI({
+    tagList(
+      tags$h3("Step 1: Assessee Details"),
+      tags$p("Provide details of the assessee below."),
+      textInput("clientName", "First Name", placeholder = "John") %>%
+        shinyInput_label_embed(
+          icon("question") %>%
+            bs_embed_tooltip(
+              title = "Input the client's name. This is optional. This is not stored on the server. If
+            you provide a name it will be included in the visualisation's header. If you do not provide a name,
+            then the plot will be titled 'Assessment Results'", placement = "right")
+        ),
+      dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
+        bs_embed_tooltip(title = "Input the assessee's DOB. This allows the application to calculate
+                       the appropriate confidence intervals for each visualisation.", placement = "right"),
+      radioButtons('assesseeGender', "Gender", choices = c("Female", "Male"), inline = TRUE) %>% 
+        bs_embed_tooltip(title = "Input the assessee's gender This allows the application to calculate
+                       the appropriate confidence intervals for the Conners visualisation.", placement = "right")
+    )
+  })
+  
+  output$instructions <- renderUI({
+    tagList(
+      tags$h3("Step 2: Select Visualisation Tools"),
+      tags$p("Use the navigation bar at the top of this page to select whether you want to visualise:"),
+      tags$ul(
+        tags$li("CHC data from cognitive ability and academic achievemnet tests"),
+        tags$li("Conners-3 data")
+      ),
+      tags$p("On each tab ensure you have the correct Tests, Indexes, Subtests and Options selected prior to visualising.",
+             tags$strong("Each change may force the user to re-input scores.")
+      )
+    )
+  })
+  
   #### Client Name ####
   
   clientName <- reactive({
@@ -175,16 +189,6 @@ server <- function(input, output, session) {
                        and WJ IV.", placement = "right"),
       tags$hr()
     )
-  })
-  
-  #### CHC Main Assessment Age ####
-  
-  output$chcAxAge <- reactive({
-    if (clientName() == "") {
-      paste("Assessee was ", chcAges()[1], " years old.")
-    } else {
-      paste(clientName(), " was ", chcAges()[1], " years old.") 
-    }
   })
   
   #### CHC Number of Additional Assessments ####
