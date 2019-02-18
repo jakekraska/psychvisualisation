@@ -110,9 +110,6 @@ ui <- navbarPage(
                                    the client was assessed two years ago and you have a report that includes a WISC-V 
                                    and a WIAT-III, select 1 additional assessment.", placement = "right")),
                            uiOutput("chcAdditionalAxInputs"),
-                           verbatimTextOutput("chcAgesTest"),
-                           verbatimTextOutput("chcAgesClassTest"),
-                           verbatimTextOutput("chcDatesTest"),
                            uiOutput("chcTests")),
                     column(width = 3,
                            uiOutput("chcComposites"),
@@ -127,9 +124,7 @@ ui <- navbarPage(
            fluidRow(column(width = 10, offset = 1,
                            hr(),
                            uiOutput("chcPlotUI"),
-                           downloadButton("downloadCHCPlot"),
-                           tableOutput("chcDataTable"),
-                           textOutput("chcClasses")
+                           downloadButton("downloadCHCPlot")
            ))),
   
   #### Conners-3 UI ####
@@ -156,9 +151,6 @@ ui <- navbarPage(
                            hr(),
                            plotOutput("connersPlot", width = "100%"),
                            downloadButton("downloadConnersPlot")
-                           # hr(),
-                           # tableOutput("connersDataTable"),
-                           # uiOutput("connersClasses")
            ))),
   tabPanel("Changes",
            fluidRow(column(width = 5, offset = 1,
@@ -220,16 +212,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # chcDatesTest <- reactive({
-  #   firstdate <- input$chcAxDate
-  #   dateset <- sapply(1:input$chcNAdditionalAx, function(i) {
-  #     input[[paste0("chcAssessmentDate",i+1)]]
-  #   })
-  #   c(firstdate,dateset)
-  # })
-  # 
-  # output$chcDatesTest <- renderText(chcDatesTest())
-  
   #### CHC Calculate Age ####
   
   chcAges <- reactive({
@@ -247,13 +229,6 @@ server <- function(input, output, session) {
     }
   })
   
-  # output$chcAgesTest <- renderText(chcAges())
-  # 
-  # chcAgesClasses <- reactive({
-  #   sapply(chcAges(), function(i) {class(i)})
-  # })
-  # 
-  # output$chcAgesClassTest <- renderText(chcAgesClasses())
   
   #### CHC Test Inputs ####
   
@@ -616,16 +591,6 @@ server <- function(input, output, session) {
     }
   })
   
-  #### CHC Data Table for Debugging ####
-  
-  # chcClasses <- reactive({
-  #   req(chcData())
-  #   apply(chcData(), 2, class)
-  # })
-  # 
-  # output$chcDataTable <- renderTable(chcData())
-  # output$chcClasses <- renderText(chcClasses())
-  
   #### CHC Plot ####
   
   # Hide plot area upon loading
@@ -889,16 +854,6 @@ server <- function(input, output, session) {
       return(connersData)
     }
   })
-  
-  #### Conners Data Table for Debugging ####
-  
-  # connersClasses <- reactive({
-  #   req(connersData())
-  #   apply(connersData(), 2, class)
-  # })
-  # 
-  # output$connersDataTable <- renderTable(connersData())
-  # output$connersClasses <- renderText(connersClasses())
   
   #### Conners Plot Button ####
   
