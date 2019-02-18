@@ -587,9 +587,11 @@ server <- function(input, output, session) {
     # Append CHC labels
     if(input$chcLabels == "No") {
       chcData <- chcData
-    } else if (input$chcLabels == "Abbreviated") {
+    } else if (input$chcLabels == "Name") {
+      chcData$name <- str_c(chcData$name, " (", chcData$chcfull, ") ", sep = "")
+    } else if (input$chcLabels == "Acronym") {
       chcData$name <- str_c(chcData$name, " (", chcData$chc, ") ", sep = "")
-    } else if (input$chcLabels == "Full") {
+    } else if (input$chcLabels == "Name + Acronym") {
       chcData$name <- str_c(chcData$name, " (", chcData$chc, ": ", chcData$chcfull, ") ", sep = "")
     } else {
       chcData <- chcData

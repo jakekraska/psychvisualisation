@@ -133,7 +133,7 @@ PlotOptions <- function(tool = NULL,
   }
   
   option9 <- if(chclabels == TRUE) {
-    radioButtons("chcLabels", "CHC Labels", choices = c("No","Abbreviated","Full"), inline = TRUE) %>% 
+    radioButtons("chcLabels", "CHC Labels", choices = c("No","Name","Acronym","Name + Acronym"), inline = TRUE) %>% 
       bs_embed_tooltip(title = "Select whether you want the CHC factor names added to the scale names for each composite/subtest.", placement = "left")
   } else {
     NULL
