@@ -77,7 +77,7 @@ ui <- navbarPage(
                                    title = "Input the client's name. This is optional. This is not stored on the server. If
                                    you provide a name it will be included in the visualisation's header. If you do not provide a name,
                                    then the plot will be titled 'Assessment Results'", placement = "right")
-                               ),
+                             ),
                            dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
                              bs_embed_tooltip(title = "Input the assessee's DOB. This allows the application to calculate
                                               the appropriate confidence intervals for each visualisation.", placement = "right"),
@@ -89,6 +89,9 @@ ui <- navbarPage(
                            tags$ul(
                              tags$li("CHC data from cognitive ability and academic achievemnet tests"),
                              tags$li("Conners-3 data")
+                           ),
+                           tags$p("On each tab ensure you have the correct Tests, Indexes, Subtests and Options selected prior to visualising.",
+                                  tags$strong("Each change may force the user to re-input scores.")
                            )
                     ))),
   
@@ -157,7 +160,7 @@ ui <- navbarPage(
                            includeHTML("changes.html")),
                     column(width = 5, offset = 1,
                            includeHTML("plannedchanges.html")
-           ))))
+                    ))))
 
 #### Server ####
 
