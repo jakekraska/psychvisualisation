@@ -69,14 +69,22 @@ PlotOptions <- function(tool = NULL,
   
   option3 <- if(bartype == TRUE) {
     conditionalPanel("input.chcPlotType == 'Line'", 
-                     sliderInput(paste0(tool,"ErrorWidth"), "Error Bar Width", max = 1, min = .1, step = .1, value = .5) %>% 
-                       bs_embed_tooltip(title = "Changes the width of the line representing the minimum and maximum of the confidence interval.", placement = "left"),
+                     sliderInput(paste0(tool,"ErrorWidth"), "Error Bar Width", max = 1, min = .1, step = .1, value = .5) %>%
+                       shinyInput_label_embed(
+                         icon("question") %>%
+                           bs_embed_tooltip(title = "Changes the width of the line representing the minimum and maximum of the confidence interval.", placement = "left")),
                      sliderInput(paste0(tool,"LineThickness"), "Line Thickness", max = 3, min = .2, step = .2, value = 1) %>% 
-                       bs_embed_tooltip(title = "Changes the thickness of the line.", placement = "left"),
+                       shinyInput_label_embed(
+                         icon("question") %>%
+                           bs_embed_tooltip(title = "Changes the thickness of the line.", placement = "left")),
                      sliderInput(paste0(tool,"PointSize"), "Point Size", max = 4, min = .2, step = .2, value = 2 )%>% 
-                       bs_embed_tooltip(title = "Changes the size of the point that represents the score in the middle of the line.", placement = "left"),
-                     sliderInput(paste0(tool,"PointShape"), "Point Shape", max = 25, min = 0, step = 1, value = 16) %>% 
-                       bs_embed_tooltip(title = "Changes the symbol that represents the score. There are 25 symbols available.", placement = "left")
+                       shinyInput_label_embed(
+                         icon("question") %>%
+                           bs_embed_tooltip(title = "Changes the size of the point that represents the score in the middle of the line.", placement = "left")),
+                     sliderInput(paste0(tool,"PointShape"), "Point Shape", max = 25, min = 0, step = 1, value = 16) %>%
+                       shinyInput_label_embed(
+                         icon("question") %>%
+                           bs_embed_tooltip(title = "Changes the symbol that represents the score. There are 25 symbols available.", placement = "left"))
     )
   } else {
     NULL
@@ -115,7 +123,9 @@ PlotOptions <- function(tool = NULL,
   
   option8 <- if(organise == TRUE) {
     selectInput(paste0(tool,"Organise"), "Sort Graph", choices = sortoptions) %>% 
-      bs_embed_tooltip(title = "Determines what order the scales are presented in.", placement = "left")
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Determines what order the scales are presented in.", placement = "left"))
   } else {
     NULL
   }
@@ -136,13 +146,27 @@ PlotOptions <- function(tool = NULL,
   
   option11 <- if(plotheight == TRUE) {
     sliderInput(paste0(tool,"PlotHeight"), "Plot Size", min = 1, max = 5, value = 3, step = 1) %>% 
-      bs_embed_tooltip(title = "Change the height of the plot to fit more or less scales.", placement = "left")
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Change the height of the plot to fit more or less scales.", placement = "left"))
   } else {
     NULL
   }
   
   # Put options into a taglist
   tagList(
-    option1, option2, option3, option4, option5, option6, option7, option8, option9, option10, option11
+    tags$h3("Step 8: Plot Options"),
+    tags$p("These options change the presentation of the visualisation."),
+    option1, 
+    option2, 
+    option3, 
+    option4, 
+    option5, 
+    option6, 
+    option7, 
+    option8, 
+    option9, 
+    option10, 
+    option11
   )
 }
