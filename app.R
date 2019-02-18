@@ -842,7 +842,7 @@ server <- function(input, output, session) {
         tagList(
           tags$h4(paste0(i," Report Form Scores")),
           lapply(data$name, function(name){
-            numericInput(paste(name, "connersInput", sep = ""), paste(name, "Score", sep = " "), value = 50, min = 0, max = 100)
+            numericInput(paste0(name, " Input"), paste0(name, " Score"), value = 50, min = 0, max = 100)
           }),
           tags$hr()
         )
@@ -889,12 +889,11 @@ server <- function(input, output, session) {
     req(input$connersForms)
     connersData <- lapply(input$connersForms, function(form) {
       dataSubset <- filter(conners, form == form)
-      connersData <- lapply(dataSubset$name, function(name){
-        scaleInputName <- paste0(name, "connersInput")
+      connersData <- lapply(dataSubset$name, function(name) {
         rowref <- which(dataSubset$name == name)
-        data.frame(value = input[[scaleInputName]],
-                   sem = dataSubset[[paste0(gender,"sem",input[[paste(form,"ConnersAge",sep = "")]])]][rowref],
-                   name = name,
+        data.frame(name = name,
+                   value = input[[paste0(name, " Input")]],
+                   sem = dataSubset[[paste0(gender, "sem", input[[paste0(form,"ConnersAge")]])]][rowref],
                    stringsAsFactors = FALSE
         )
       })
