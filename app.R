@@ -168,10 +168,12 @@ server <- function(input, output, session) {
   output$chcMainAssessment <- renderUI({
     tagList(
       tags$h3("Step 3: Main Assessment"),
+      tags$hr(),
       dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy") %>% 
         bs_embed_tooltip(title = "Input the date of the main assessment you want to visualise. This date
                        may represent multiple tests. For example, you may have administered a WISC-V 
-                       and WJ IV.", placement = "right")
+                       and WJ IV.", placement = "right"),
+      tags$hr()
     )
   })
   
@@ -190,13 +192,15 @@ server <- function(input, output, session) {
   output$chcAdditionalAssessments <- renderUI({
     tagList(
       tags$h3("Step 4: Additional Assessments"),
+      tags$hr(),
       sliderInput("chcNAdditionalAx", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1) %>%
         shinyInput_label_embed(
           icon("question") %>%
             bs_embed_tooltip(
               title = "Input the number of additional assessments if applicable. For example, if
               the client was assessed two years ago and you have a report that includes a WISC-V 
-              and a WIAT-III, select 1 additional assessment.", placement = "right"))
+              and a WIAT-III, select 1 additional assessment.", placement = "right")),
+      tags$hr()
     )
   })
   
@@ -252,6 +256,7 @@ server <- function(input, output, session) {
     req(chcNAssessments(),chcAges())
     tagList(
       tags$h3("Step 5: Select Tests"),
+      tags$hr(),
       tags$p("Select the tests that you administered as part of this assessment.
              If you indicated that there were additional assessments, input boxes 
              will be avaiable for those dates."),
@@ -268,7 +273,8 @@ server <- function(input, output, session) {
             icon("question") %>%
               bs_embed_tooltip(
                 title = paste0("Select the tests administered as part of the assessment conducted in ", label), placement = "right"))
-      })
+      }),
+      tags$hr()
     )
   })
   
@@ -802,6 +808,7 @@ server <- function(input, output, session) {
   output$connersForms <- renderUI({
     tagList(
       tags$h3("Step 3: Select Forms Administered"),
+      tags$hr(),
       selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")) %>%
         shinyInput_label_embed(
           icon("question") %>%
@@ -816,6 +823,7 @@ server <- function(input, output, session) {
     req(input$connersForms)
     tagList(
       tags$h3("Step 4: Select Age of Client"),
+      tags$hr(),
       lapply(input$connersForms, function(i){
         sliderInput(paste(i,"ConnersAge", sep = ""), paste("Age at Completion of", i, sep = " "), value = 6, min = 6, max = 18, step = 1)
       })
@@ -828,11 +836,16 @@ server <- function(input, output, session) {
     req(input$connersForms)
     tagList(
       tags$h3("Step 5: Input Scores"),
+      tags$hr(),
       lapply(input$connersForms, function(i){
         data <- filter(conners, form == i)
-        lapply(data$name, function(name){
-          numericInput(paste(name, "connersInput", sep = ""), paste(name, "Score", sep = " "), value = 50, min = 0, max = 100)
-        })
+        tagList(
+          tags$h4(paste0(i," Report Form Scores")),
+          lapply(data$name, function(name){
+            numericInput(paste(name, "connersInput", sep = ""), paste(name, "Score", sep = " "), value = 50, min = 0, max = 100)
+          }),
+          tags$hr()
+        )
       })
     )
   })

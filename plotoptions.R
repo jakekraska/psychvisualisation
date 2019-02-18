@@ -158,6 +158,7 @@ PlotOptions <- function(tool = NULL,
   # Put options into a taglist
   tagList(
     tags$h3("Step 8: Plot Options"),
+    tags$hr(),
     tags$p("These options change the presentation of the visualisation."),
     option1, 
     option2, 
