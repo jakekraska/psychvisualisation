@@ -25,6 +25,7 @@ source("plotoptions.R")
 
 # Load composites and prepare for Shiny
 composites <- read_csv("composites.csv")
+composites <- filter(composites, norms == "us" | norms == "both")
 composites[is.na(composites)] <- 0
 composites$name <- paste(composites$test, composites$composite, sep = " ")
 names(composites)[names(composites) == 'composite'] <- 'scale'
@@ -32,6 +33,7 @@ composites$chcfull <- RecodeCHC(composites$chc)
 
 # Load subtests and prepare for Shiny
 subtests <- read_csv("subtests.csv")
+subtests <- filter(subtests, norms == "us" | norms == "both")
 subtests[is.na(subtests)] <- 0
 subtests$name <- paste(subtests$test, subtests$subtest, sep = " ")
 names(subtests)[names(subtests) == 'subtest'] <- 'scale'
@@ -332,9 +334,9 @@ server <- function(input, output, session) {
   # If more than 1 assessment then add ability to break up categories by colours
   chcColourSelectionOptions <- reactive({
     if (chcNAssessments() > 1) {
-      c("Year", "Year & Type", "Type")
+      c("Year", "Year & Type (ACH/COG)", "Type (ACH/COG)")
     } else {
-      c("Type")
+      c("Type (ACH/COG)")
     }
   })
   
