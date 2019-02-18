@@ -1,6 +1,8 @@
 #### Load Libraries ####
 
 library(shiny)
+library(bsplus)
+library(htmltools)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
@@ -50,6 +52,8 @@ ui <- navbarPage(
   #### Initial JavaScript ####
   
   useShinyjs(),
+  use_bs_tooltip(),
+  
   tags$script("$(document).on('shiny:connected', function(event) {var myWidth = $(window).width();Shiny.onInputChange('shiny_width',myWidth)});"),
   
   #### Title and Page Details ####
@@ -61,14 +65,25 @@ ui <- navbarPage(
   
   tabPanel("Home", 
            fluidRow(column(width = 4, offset = 1,
-                           themeSelector(),
+                           #themeSelector(),
                            includeHTML("introduction.html")),
                     column(width = 4, offset = 1,
                            tags$h3("Step 1: Assessee Details"),
-                           tags$p("Provide details of the assessee below so that confidence intervals can be included on the visualisations."),
-                           textInput("clientName", "First Name", placeholder = "John"),
-                           dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01"),
-                           radioButtons('assesseeGender', "Gender", choices = c("Female", "Male"), inline = TRUE),
+                           tags$p("Provide details of the assessee below."),
+                           textInput("clientName", "First Name", placeholder = "John") %>%
+                             shinyInput_label_embed(
+                               icon("question") %>%
+                                 bs_embed_tooltip(
+                                   title = "Input the client's name. This is optional. This is not stored on the server. If
+                                   you provide a name it will be included in the visualisation's header. If you do not provide a name,
+                                   then the plot will be titled 'Assessment Results'", placement = "right")
+                               ),
+                           dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
+                             bs_embed_tooltip(title = "Input the assessee's DOB. This allows the application to calculate
+                                              the appropriate confidence intervals for each visualisation.", placement = "right"),
+                           radioButtons('assesseeGender', "Gender", choices = c("Female", "Male"), inline = TRUE) %>% 
+                             bs_embed_tooltip(title = "Input the assessee's gender This allows the application to calculate
+                                              the appropriate confidence intervals for the Conners visualisation.", placement = "right"),
                            tags$h3("Step 2: Select Visualisation Tools"),
                            tags$p("Use the navigation bar at the top of this page to select whether you want to visualise:"),
                            tags$ul(
@@ -82,13 +97,18 @@ ui <- navbarPage(
   tabPanel("CHC",
            fluidRow(column(width = 3,
                            tags$h3("Step 3: Main Assessment"),
-                           tags$p("Input the date of the assessment you want to visualise."),
-                           dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy"),
-                           br(),
+                           dateInput("chcAxDate", "Date of Assessment", format = "dd/mm/yyyy") %>% 
+                             bs_embed_tooltip(title = "Input the date of the main assessment you want to visualise. This date
+                                              may represent multiple tests. For example, you may have administered a WISC-V 
+                                              and WJ IV.", placement = "right"),
                            tags$h3("Step 4: Additional Assessments"),
-                           tags$p("Input the number of additional assessments if applicable. For example, if
-                                  the client was assessed two years ago and you want to compare the results."),
-                           sliderInput("chcNAdditionalTests", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1),
+                           sliderInput("chcNAdditionalAx", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1) %>%
+                             shinyInput_label_embed(
+                               icon("question") %>%
+                                 bs_embed_tooltip(
+                                   title = "Input the number of additional assessments if applicable. For example, if
+                                   the client was assessed two years ago and you have a report that includes a WISC-V 
+                                   and a WIAT-III, select 1 additional assessment.", placement = "right")),
                            uiOutput("chcAdditionalAxInputs"),
                            verbatimTextOutput("chcAgesTest"),
                            verbatimTextOutput("chcAgesClassTest"),
@@ -117,7 +137,11 @@ ui <- navbarPage(
   tabPanel("Conners-3",
            fluidRow(column(width = 3, offset = 1,
                            tags$h3("Step 3: Select Forms Administered"),
-                           selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")),
+                           selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")) %>%
+                             shinyInput_label_embed(
+                               icon("question") %>%
+                                 bs_embed_tooltip(
+                                   title = "Select the forms of the Conners that were administered.", placement = "right")),
                            uiOutput("connersAxDates"),
                            uiOutput("connersAge")),
                     column(width = 3,
@@ -161,7 +185,7 @@ server <- function(input, output, session) {
   #### CHC Number of Assessment Dates ####
   
   chcNAssessments <- reactive({
-    input$chcNAdditionalTests + 1
+    input$chcNAdditionalAx + 1
   })
   
   #### CHC Main Assessment Age ####
@@ -181,22 +205,24 @@ server <- function(input, output, session) {
     min <- as.numeric(min) + 1
     max <- format(Sys.Date(), "%Y")
     max <- as.numeric(max) - 1
-    sample(min:max, input$chcNAdditionalTests)
+    sample(min:max, input$chcNAdditionalAx)
   })
   
   output$chcAdditionalAxInputs <- renderUI({
     hide("chcPlot")
     hide("downloadCHCPlot")
     if (chcNAssessments() > 1) {
-      lapply(1:input$chcNAdditionalTests, function(i) {
-        dateInput(paste0("chcAssessmentDate",i+1),"Assessment Date",value = paste0(chcRandomDates()[i],"-01-01"), max = Sys.Date() + 1, format = "dd/mm/yyyy")
+      lapply(1:input$chcNAdditionalAx, function(i) {
+        dateInput(paste0("chcAssessmentDate",i+1),"Assessment Date",value = paste0(chcRandomDates()[i],"-01-01"), max = Sys.Date() + 1, format = "dd/mm/yyyy") %>% 
+          bs_embed_tooltip(title = "Input the date of the additional assesssment you would like to visualise. As with the main assessment date, 
+                           this date may represent multiple tests within an assessment.", placement = "right")
       })
     }
   })
   
   # chcDatesTest <- reactive({
   #   firstdate <- input$chcAxDate
-  #   dateset <- sapply(1:input$chcNAdditionalTests, function(i) {
+  #   dateset <- sapply(1:input$chcNAdditionalAx, function(i) {
   #     input[[paste0("chcAssessmentDate",i+1)]]
   #   })
   #   c(firstdate,dateset)
@@ -207,12 +233,12 @@ server <- function(input, output, session) {
   #### CHC Calculate Age ####
   
   chcAges <- reactive({
-    req(input$assesseeDOB,input$chcAxDate,1,input$chcNAdditionalTests)
+    req(input$assesseeDOB,input$chcAxDate,1,input$chcNAdditionalAx)
     if (chcNAssessments() == 1) {
       floor(age_calc(input$assesseeDOB, input$chcAxDate))
     } else if (chcNAssessments() > 1) {
       firstage <- floor(age_calc(input$assesseeDOB, input$chcAxDate))
-      extraages <- sapply(1:input$chcNAdditionalTests, function(i) {
+      extraages <- sapply(1:input$chcNAdditionalAx, function(i) {
         floor(age_calc(input$assesseeDOB, input[[paste0("chcAssessmentDate",i+1)]]))
       })
       c(firstage,extraages)
@@ -246,7 +272,11 @@ server <- function(input, output, session) {
         }
         choices <- rbind(composites,subtests)
         choices <- filter(choices, chcAges()[i] >= minage, chcAges()[i] <= maxage)
-        selectizeInput(paste("chcTests",i,sep=""),paste("Tests from ", label, sep = ""), choices = unique(choices$test), multiple = TRUE, options = list(placeholder = "Test"))
+        selectizeInput(paste0("chcTests",i),paste0("Tests from ", label), choices = unique(choices$test), multiple = TRUE, options = list(placeholder = "Test")) %>%
+          shinyInput_label_embed(
+            icon("question") %>%
+              bs_embed_tooltip(
+                title = paste0("Select the tests administered as part of the assessment conducted in ", label), placement = "right"))
       })
     )
   })
@@ -275,7 +305,11 @@ server <- function(input, output, session) {
           }
           chcTestsID <- paste0("chcTests",i)
           availablecomposites <- subset(composites, test %in% input[[chcTestsID]])
-          selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite"))
+          selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite")) %>%
+            shinyInput_label_embed(
+              icon("question") %>%
+                bs_embed_tooltip(
+                  title = paste0("Select the composites administered as part of the testing conducted in ", label), placement = "right"))
         })
       )
     }
@@ -295,7 +329,11 @@ server <- function(input, output, session) {
           }
           chcTestsID <- paste0("chcTests",i)
           availablesubtests <- subset(subtests, test %in% input[[chcTestsID]])
-          selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))
+          selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))%>%
+            shinyInput_label_embed(
+              icon("question") %>%
+                bs_embed_tooltip(
+                  title = paste0("Select the subtests administered as part of the testing conducted in ", label), placement = "right"))
         })
       )
     }
@@ -305,20 +343,19 @@ server <- function(input, output, session) {
   
   # If more than 1 assessment then add the sort by year option
   chcSortOptions <- reactive({
-    options <- c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed")
-    ifelse(chcNAssessments() > 1, append(options,"Year"), options)
+    ifelse(chcNAssessments() > 1, 
+           c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed", "Year"),
+           c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed"))
   })
   
   # If more than 1 assessment then add ability to break up categories by colours
   chcColourSelectionOptions <- reactive({
-    options <- c("Type")
-    ifelse(chcNAssessments() > 1, append(options, c("Year", "Year & Type", "Year")), options) 
+    ifelse(chcNAssessments() > 1, c("Year", "Year & Type", "Year"), c("Type")) 
   })
   
   # If 1 assessment date, then allow user to not append year to labels
   chcYearLabelOptions <- reactive({
-    options <- c("Yes")
-    ifelse(chcNAssessments() == 1, append(options, "No"), options) 
+    ifelse(chcNAssessments() > 1, c("No", "Yes"), c("No"))
   })
   
   # Present the plot customisation options
