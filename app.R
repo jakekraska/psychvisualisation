@@ -103,8 +103,7 @@ ui <- navbarPage(
   tabPanel("Conners-3",
            fluidRow(column(width = 3, offset = 1,
                            uiOutput("connersForms"),
-                           uiOutput("connersAxDates"),
-                           uiOutput("connersAge")),
+                           uiOutput("connersAxDates")),
                     column(width = 3,
                            uiOutput("connersInputs"),
                            textOutput("connersValues"),
@@ -151,6 +150,8 @@ server <- function(input, output, session) {
                        the appropriate confidence intervals for the Conners visualisation.", placement = "right")
     )
   })
+  
+  #### Instructions ####
   
   output$instructions <- renderUI({
     tagList(
