@@ -114,10 +114,10 @@ PlotOptions <- function(tool = NULL,
   }
   
   option7 <- if(presentationtype == TRUE) {
-    scoreTypes <- c("Z" = "z","Standard Score" = "standard", "Scaled Score" = "scaled", "T Score" = "t")
+    scoreTypes <- c("Z" = "z","Standard Score" = "standard", "Scaled Score" = "scaled", "T-Score" = "t-score")
     radioButtons(paste0(tool,"PresentationType"), "Score Type to Plot", choices = scoreTypes, selected = "standard", inline = TRUE) %>% 
       bs_embed_tooltip(title = "Changes the scale of the plot and transforms all scores and confidence intervals appropriately. Z scores have a mean
-                       of 0 and SD of 1, Standard Scores have a mean of 100 and SD of 15, Scaled Scores have a mean of 10 and SD of 2, and T Scores
+                       of 0 and SD of 1, Standard Scores have a mean of 100 and SD of 15, Scaled Scores have a mean of 10 and SD of 2, and T-Scores
                        have a mean of 50 and SD of 10.", placement = "left")
   } else {
     NULL
@@ -140,7 +140,7 @@ PlotOptions <- function(tool = NULL,
   }
   
   option10 <- if(coloursetup == TRUE) {
-    radioButtons(paste0(tool,"ColourSetup"), "Colour Scores", choices = colourselection, selected = "Type", inline = TRUE) %>% 
+    radioButtons(paste0(tool,"ColourSetup"), "Colour Scores", choices = colourselection, inline = TRUE) %>% 
       bs_embed_tooltip(title = "Determine what categories you want the visualisation to be represented by different colours.", placement = "left")
   } else {
     NULL

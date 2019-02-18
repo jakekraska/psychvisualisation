@@ -22,7 +22,7 @@ ConvertScore <- function(score, fromtype, totype, round = 0) {
     score <- (score-10)/3
   } else if (fromtype == "standard") {
     score <- (score-100)/15
-  } else if (fromtype == "t") {
+  } else if (fromtype == "t-score") {
     score <- (score-50)/10
   } else {
     stop("fromtype is specified incorrectly")
@@ -35,7 +35,7 @@ ConvertScore <- function(score, fromtype, totype, round = 0) {
     score <- (score*3)+10
   } else if (totype == "standard") {
     score <- (score*15)+100
-  } else if (totype == "t") {
+  } else if (totype == "t-score") {
     score <- (score*10)+50
   } else {
     stop("totype is specified incorrectly")

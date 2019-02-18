@@ -22,7 +22,7 @@ ConvertSEM <- function(sem, fromtype, totype) {
     sd <- 3
   } else if (fromtype == "standard") {
     sd <- 15
-  } else if (fromttype == "t") {
+  } else if (fromttype == "t-score") {
     sd <- 10
   } else {
     stop("fromtype is specified incorrectly")
@@ -37,7 +37,7 @@ ConvertSEM <- function(sem, fromtype, totype) {
     sd <- 3
   } else if (totype == "standard") {
     sd <- 15
-  } else if (totype == "t") {
+  } else if (totype == "t-score") {
     sd <- 10
   } else {
     stop("totype is specified incorrectly")

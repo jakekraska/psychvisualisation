@@ -21,7 +21,7 @@ PresentInputs <- function(type, score) {
     value <- 100
     min <- 140
     max <- 160
-  } else if (type == "t") {
+  } else if (type == "t-score") {
     value <- 50
     min <- 0
     max <- 100
