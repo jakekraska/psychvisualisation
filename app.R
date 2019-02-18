@@ -258,6 +258,7 @@ server <- function(input, output, session) {
   
   #### CHC Check Test Inputs ####
   
+  # Check to see if all assessment fields have at least one test
   chcTestsCheck <- reactive({
     check <- sapply(1:chcNAssessments(), function(i){
       chcTestsID <- paste0("chcTests",i)
@@ -327,8 +328,8 @@ server <- function(input, output, session) {
   
   # If more than 1 assessment then add ability to break up categories by colours
   chcColourSelectionOptions <- reactive({
-    if (chcColourSelectionOptions() > 1) {
-      c("Year", "Year & Type", "Year")
+    if (chcNAssessments() > 1) {
+      c("Year", "Year & Type", "Type")
     } else {
       c("Type")
     }
