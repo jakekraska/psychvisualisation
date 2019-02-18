@@ -343,19 +343,29 @@ server <- function(input, output, session) {
   
   # If more than 1 assessment then add the sort by year option
   chcSortOptions <- reactive({
-    ifelse(chcNAssessments() > 1, 
-           c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed", "Year"),
-           c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed"))
+    if (chcNAssessments() > 1) {
+      c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed", "Year")
+    } else {
+      c("Default", "Alphabetical", "Type", "CHC", "Value", "Values Reversed")
+    }
   })
   
   # If more than 1 assessment then add ability to break up categories by colours
   chcColourSelectionOptions <- reactive({
-    ifelse(chcNAssessments() > 1, c("Year", "Year & Type", "Year"), c("Type")) 
+    if (chcColourSelectionOptions() > 1) {
+      c("Year", "Year & Type", "Year")
+    } else {
+      c("Type")
+    }
   })
   
   # If 1 assessment date, then allow user to not append year to labels
   chcYearLabelOptions <- reactive({
-    ifelse(chcNAssessments() > 1, c("No", "Yes"), c("No"))
+    if (chcNAssessments() > 1) {
+      c("No", "Yes")
+    } else {
+      c("No")
+    }
   })
   
   # Present the plot customisation options
