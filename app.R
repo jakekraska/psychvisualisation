@@ -25,7 +25,6 @@ source("plotoptions.R")
 
 # Load composites and prepare for Shiny
 composites <- read_csv("composites.csv")
-composites <- filter(composites, norms == "us" | norms == "both")
 composites[is.na(composites)] <- 0
 composites$name <- paste(composites$test, composites$composite, sep = " ")
 names(composites)[names(composites) == 'composite'] <- 'scale'
@@ -33,7 +32,6 @@ composites$chcfull <- RecodeCHC(composites$chc)
 
 # Load subtests and prepare for Shiny
 subtests <- read_csv("subtests.csv")
-subtests <- filter(subtests, norms == "us" | norms == "both")
 subtests[is.na(subtests)] <- 0
 subtests$name <- paste(subtests$test, subtests$subtest, sep = " ")
 names(subtests)[names(subtests) == 'subtest'] <- 'scale'
@@ -66,13 +64,11 @@ ui <- navbarPage(
   #### Home Page UI ####
   
   tabPanel("Home", 
-           fluidRow(column(width = 4, offset = 1,
+           fluidRow(column(width = 10, offset = 1,
                            #themeSelector(),
-                           includeHTML("introduction.html")),
-                    column(width = 4, offset = 1,
+                           includeHTML("introduction.html"),
                            uiOutput("assesseeDetails"),
-                           uiOutput("instructions")
-                    ))),
+                           uiOutput("instructions")))),
   
   #### CHC UI ####
   
@@ -117,12 +113,14 @@ ui <- navbarPage(
                            plotOutput("connersPlot", width = "100%"),
                            downloadButton("downloadConnersPlot")
            ))),
-  tabPanel("Changes",
+  tabPanel("Changes and Notes",
            fluidRow(column(width = 5, offset = 1,
                            includeHTML("changes.html")),
                     column(width = 5, offset = 1,
                            includeHTML("plannedchanges.html")
-                    ))))
+                    )),
+           fluidRow(column(width = 11, offset = 1,
+                           includeHTML("notes.html")))))
 
 #### Server ####
 
@@ -142,12 +140,18 @@ server <- function(input, output, session) {
             you provide a name it will be included in the visualisation's header. If you do not provide a name,
             then the plot will be titled 'Assessment Results'", placement = "right")
         ),
-      dateInput('assesseeDOB', "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
+      dateInput("assesseeDOB", "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
         bs_embed_tooltip(title = "Input the assessee's DOB. This allows the application to calculate
                        the appropriate confidence intervals for each visualisation.", placement = "right"),
-      radioButtons('assesseeGender', "Gender", choices = c("Female", "Male"), inline = TRUE) %>% 
+      radioButtons("assesseeGender", "Gender", choices = c("Female", "Male"), inline = TRUE) %>% 
         bs_embed_tooltip(title = "Input the assessee's gender This allows the application to calculate
-                       the appropriate confidence intervals for the Conners visualisation.", placement = "right")
+                       the appropriate confidence intervals for the Conners visualisation.", placement = "right"),
+      selectInput("norms", "Norms", choices = c("Australian", "US"), selected = "Australian", multiple = FALSE) %>%
+        shinyInput_label_embed(
+          icon("question") %>%
+            bs_embed_tooltip(
+              title = "Select the norms to use for calculation of confidence intervals.", placement = "right")
+        )
     )
   })
   
