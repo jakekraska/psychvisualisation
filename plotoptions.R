@@ -1,7 +1,7 @@
 PlotOptions <- function(tool = NULL, 
                         sortoptions = c("Default", "Alphabetical"), 
                         colourselection = c("Type (ACH/COG)"),
-                        yearlabels = c("No", "Yes"),
+                        yearlabels = c("Yes"),
                         confidence = FALSE,
                         bartype = FALSE,
                         datalabels = FALSE,

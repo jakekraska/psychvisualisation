@@ -428,9 +428,9 @@ server <- function(input, output, session) {
   # If 1 assessment date, then allow user to not append year to labels
   chcYearLabelOptions <- reactive({
     if (chcNAssessments() > 1) {
-      c("No", "Yes")
+      c("Yes")
     } else {
-      c("No")
+      c("No", "Yes")
     }
   })
   
