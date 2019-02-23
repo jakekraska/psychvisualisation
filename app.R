@@ -21,27 +21,6 @@ source("presentinputs.R")
 source("convertsem.R")
 source("plotoptions.R")
 
-#### Load Data ####
-
-# Load composites and prepare for Shiny
-composites <- read_csv("composites.csv")
-composites[is.na(composites)] <- 0
-composites$name <- paste(composites$test, composites$composite, sep = " ")
-names(composites)[names(composites) == 'composite'] <- 'scale'
-composites$chcfull <- RecodeCHC(composites$chc)
-
-# Load subtests and prepare for Shiny
-subtests <- read_csv("subtests.csv")
-subtests[is.na(subtests)] <- 0
-subtests$name <- paste(subtests$test, subtests$subtest, sep = " ")
-names(subtests)[names(subtests) == 'subtest'] <- 'scale'
-subtests$chcfull <- RecodeCHC(subtests$chc)
-
-# Load conners and prepare for shiny
-conners <- read_csv("conners.csv")
-conners[is.na(conners)] <- 0
-conners$name <- paste(conners$form, conners$scale, sep = " ")
-
 # Confidence Intervals
 ci <- data.frame(ci = c(99.7,99.0,98.0,95.0,90.0,80.0,75.0,68.0), z = c(3,2.576,2.326,1.96,1.645,1.282,1.15,1))
 
@@ -154,6 +133,44 @@ server <- function(input, output, session) {
         )
     )
   })
+  
+  #### Data by Norm ####
+  
+  composites <- reactive({
+    composites <- read_csv("composites.csv")
+    composites[is.na(composites)] <- 0
+    composites$name <- paste(composites$test, composites$composite, sep = " ")
+    names(composites)[names(composites) == 'composite'] <- 'scale'
+    composites$chcfull <- RecodeCHC(composites$chc)
+    composites <- if(input$norms == "Australian") {
+      filter(composites, norms == "aus" | norms == "both")
+    } else if (input$norms == "US") {
+      filter(composites, norms == "us" | norms == "both")
+    }
+    composites
+  })
+  
+  subtests <- reactive({
+    subtests <- read_csv("subtests.csv")
+    subtests[is.na(subtests)] <- 0
+    subtests$name <- paste(subtests$test, subtests$subtest, sep = " ")
+    names(subtests)[names(subtests) == 'subtest'] <- 'scale'
+    subtests$chcfull <- RecodeCHC(subtests$chc)
+    subtests <- if(input$norms == "Australian") {
+      filter(subtests, norms == "aus" | norms == "both")
+    } else if (input$norms == "us") {
+      filter(subtests, norms == "us" | norms == "both")
+    }
+    subtests
+  })
+  
+  conners <- reactive({
+    conners <- read_csv("conners.csv")
+    conners[is.na(conners)] <- 0
+    conners$name <- paste(conners$form, conners$scale, sep = " ")
+    conners
+  })
+  
   
   #### Instructions ####
   
@@ -275,7 +292,7 @@ server <- function(input, output, session) {
         } else {
           label <- format(input[[paste0("chcAssessmentDate",i)]], "%Y")
         }
-        choices <- rbind(composites,subtests)
+        choices <- as.data.frame(rbind(composites(),subtests()))
         choices <- filter(choices, chcAges()[i] >= minage, chcAges()[i] <= maxage)
         selectizeInput(paste0("chcTests",i),paste0("Tests from ", label), choices = unique(choices$test), multiple = TRUE, options = list(placeholder = "Test")) %>%
           shinyInput_label_embed(
@@ -312,7 +329,7 @@ server <- function(input, output, session) {
             label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
           }
           chcTestsID <- paste0("chcTests",i)
-          availablecomposites <- subset(composites, test %in% input[[chcTestsID]])
+          availablecomposites <- subset(composites(), test %in% input[[chcTestsID]])
           tagList(
             selectizeInput(paste0("chcComposites",i),paste0("Composites from ", label), width = "100%",  choices = availablecomposites$name, multiple = TRUE, options = list(placeholder = "Composite")) %>%
               shinyInput_label_embed(
@@ -340,7 +357,7 @@ server <- function(input, output, session) {
             label <-  format(input[[paste0("chcAssessmentDate",i)]], "%Y")
           }
           chcTestsID <- paste0("chcTests",i)
-          availablesubtests <- subset(subtests, test %in% input[[chcTestsID]])
+          availablesubtests <- subset(subtests(), test %in% input[[chcTestsID]])
           tagList(
             selectizeInput(paste0("chcSubtests",i),paste0("Subtests from ", label), width = "100%", choices = availablesubtests$name, multiple = TRUE, options = list(placeholder = "Subtest"))%>%
               shinyInput_label_embed(
@@ -372,7 +389,7 @@ server <- function(input, output, session) {
           tagList(
             tags$h4(paste0(label," Composites")),
             lapply(1:length(input[[compositeinputid]]), function(z) {
-              type <- paste(select(filter(composites, name == input[[compositeinputid]][z]), scoretype))
+              type <- paste(select(filter(composites(), name == input[[compositeinputid]][z]), scoretype))
               PresentInputs(type, paste(label, input[[compositeinputid]][z], sep = " "))
             }),
             tags$hr()
@@ -399,7 +416,7 @@ server <- function(input, output, session) {
           tagList(
             tags$h4(paste0(label," Subtests")),
             lapply(1:length(input[[subtestinputid]]), function(z) {
-              type <- paste(select(filter(subtests, name == input[[subtestinputid]][z]), scoretype))
+              type <- paste(select(filter(subtests(), name == input[[subtestinputid]][z]), scoretype))
               PresentInputs(type, paste(label, input[[subtestinputid]][z], sep = " "))
             }),
             tags$hr()
@@ -505,8 +522,8 @@ server <- function(input, output, session) {
       compositeinputid <- paste("chcComposites",i,sep="")
       if (!is.null(input[[compositeinputid]])) {
         cvalues <- lapply(input[[compositeinputid]], function(z) {
-          type <- paste(select(filter(composites, name == z), scoretype))
-          sem <- paste(select(filter(composites, name == z), paste0("sem",chcAges()[i])))
+          type <- paste(select(filter(composites(), name == z), scoretype))
+          sem <- paste(select(filter(composites(), name == z), paste0("sem",chcAges()[i])))
           name <- paste(label, z, sep = " ")
           data.frame(name = name, 
                      value = ConvertScore(score = input[[name]], fromtype = type, totype = input$chcPresentationType), 
@@ -518,7 +535,7 @@ server <- function(input, output, session) {
     })
     cvalues <- do.call(rbind,cvalues)
     cvalues <- separate(data = cvalues, col = "name", into = c("year","name"), sep = " ", extra = "merge")
-    chcCompositeData <- subset(composites, name %in% unique(cvalues$name))
+    chcCompositeData <- subset(composites(), name %in% unique(cvalues$name))
     if (!is.null(cvalues)) {
       chcCompositeData <- merge(chcCompositeData,cvalues)
     }
@@ -533,8 +550,8 @@ server <- function(input, output, session) {
       subtestinputid <- paste("chcSubtests",i,sep="")
       if (!is.null(input[[subtestinputid]])) {
         svalues <- lapply(input[[subtestinputid]],function(z){
-          type <- paste(select(filter(subtests, name == z), scoretype))
-          sem <- paste(select(filter(subtests, name == z), paste0("sem",chcAges()[i])))
+          type <- paste(select(filter(subtests(), name == z), scoretype))
+          sem <- paste(select(filter(subtests(), name == z), paste0("sem",chcAges()[i])))
           name <- paste(label, z, sep = " ")
           data.frame(name = name, 
                      value = ConvertScore(score = input[[name]], fromtype = type, totype = input$chcPresentationType),
@@ -546,7 +563,7 @@ server <- function(input, output, session) {
     })
     svalues <- do.call(rbind,svalues)
     svalues <- separate(data = svalues, col = "name", into = c("year","name"), sep = " ", extra = "merge")
-    chcSubtestsData <- subset(subtests, name %in% unique(svalues$name))
+    chcSubtestsData <- subset(subtests(), name %in% unique(svalues$name))
     if (!is.null(svalues)) {
       chcSubtestsData <- merge(chcSubtestsData,svalues)
     }
@@ -818,7 +835,7 @@ server <- function(input, output, session) {
     tagList(
       tags$h3("Step 3: Select Forms Administered"),
       tags$hr(),
-      selectizeInput("connersForms", "Forms Administered", choices = unique(conners$form), multiple = TRUE, options = list(placeholder = "Form")) %>%
+      selectizeInput("connersForms", "Forms Administered", choices = unique(conners()$form), multiple = TRUE, options = list(placeholder = "Form")) %>%
         shinyInput_label_embed(
           icon("question") %>%
             bs_embed_tooltip(
@@ -847,7 +864,7 @@ server <- function(input, output, session) {
       tags$h3("Step 5: Input Scores"),
       tags$hr(),
       lapply(input$connersForms, function(i){
-        data <- filter(conners, form == i)
+        data <- filter(conners(), form == i)
         tagList(
           tags$h4(paste0(i," Report Form Scores")),
           lapply(data$name, function(name){
@@ -897,7 +914,7 @@ server <- function(input, output, session) {
     gender <- if (input$assesseeGender == "Male") {"m"} else if (input$assesseeGender == "Female") {"f"} else {stop("Error in Gender.")}
     req(input$connersForms)
     connersData <- lapply(input$connersForms, function(form) {
-      dataSubset <- filter(conners, form == form)
+      dataSubset <- filter(conners(), form == form)
       connersData <- lapply(dataSubset$name, function(name) {
         rowref <- which(dataSubset$name == name)
         data.frame(name = name,
@@ -908,7 +925,7 @@ server <- function(input, output, session) {
       })
       do.call(rbind,connersData)
     })
-    connersScaleData <- subset(conners, form %in% input$connersForms)
+    connersScaleData <- subset(conners(), form %in% input$connersForms)
     connersData <- merge(x = connersData, y = connersScaleData)
     connersData <- select(connersData, name, value, sem, form, scale)
     
