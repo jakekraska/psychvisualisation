@@ -168,6 +168,11 @@ server <- function(input, output, session) {
     conners <- read_csv("conners.csv")
     conners[is.na(conners)] <- 0
     conners$name <- paste(conners$form, conners$scale, sep = " ")
+    conners <- if(input$assesseeGender == "Female") {
+      select(conners, form, scale, name, scoretype, minage, maxage, starts_with("fsem", ignore.case = TRUE))
+    } else if (input$assesseeGender == "Male") {
+      select(conners, form, scale, name, scoretype, minage, maxage, starts_with("msem", ignore.case = TRUE))
+    }
     conners
   })
   
@@ -455,6 +460,9 @@ server <- function(input, output, session) {
     }
   })
   
+  # Provide range options
+  rangeVector <- c("No","Average","Standard Deviations","Wechsler")
+  
   # Present the plot customisation options
   output$chcPlotOptions <- renderUI({
     if (chcTestsCheck()) {
@@ -462,12 +470,14 @@ server <- function(input, output, session) {
                   sortoptions = chcSortOptions(), 
                   colourselection = chcColourSelectionOptions(), 
                   yearlabels = chcYearLabelOptions(),
+                  ranges = rangeVector,
                   confidence = TRUE,
                   bartype = TRUE,
                   datalabels = TRUE,
                   yearlabel = TRUE,
                   normalcurve = FALSE,
                   presentationtype = TRUE,
+                  rangevis = TRUE,
                   organise = TRUE,
                   chclabels = TRUE,
                   coloursetup = TRUE,
@@ -708,6 +718,7 @@ server <- function(input, output, session) {
     chcLineThickness <- input$chcLineThickness
     chcPointSize <- input$chcPointSize
     chcPointShape <- input$chcPointShape
+    chcRangeVisualisation <- input$chcRangeVisualisation
     
     # Set up the plot scale
     maxDataValue <- max(data$value) + max(data$sem * z)
@@ -748,21 +759,52 @@ server <- function(input, output, session) {
     # plot the main data
     p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem*z), ymax = value + (sem*z)))
     
-    # Add annotations and ranges
-    p <- p + coord_flip() +
-      geom_rect(xmin = -Inf, xmax = Inf, ymin = average[1], ymax = average[2], alpha = 0.5, fill = "grey50") +
-      geom_rect(xmin = -Inf, xmax = Inf, ymin = mean-sd, ymax = average[1], alpha = 0.5, fill = "grey70") +
-      geom_rect(xmin = -Inf, xmax = Inf, ymin = average[2], ymax = mean+sd, alpha = 0.5, fill = "grey70") +
-      geom_hline(yintercept = mean) +
-      geom_hline(yintercept = average[1]) +
-      geom_hline(yintercept = mean - sd) +
-      geom_hline(yintercept = average) +
-      geom_hline(yintercept = mean + sd) +
-      labs(title = ptitle, x = "Scale", y = "Score", caption = caption) +
-      #annotate("text", y = mean, x = length(chcData()$name)+.75, label = "Average") +
-      theme(plot.title = element_text(size = 16, face = "bold"),
-            axis.text = element_text(size = 12),
-            axis.title = element_text(size = 14, face = "bold"))
+    # Flip the axes
+    p <- p + coord_flip()
+    
+    # Add range shadings and lines
+    if(chcRangeVisualisation == "No") {
+      p <- p + geom_hline(yintercept = mean)
+    } else if (chcRangeVisualisation == "Average") {
+      p <- p +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = average[1], ymax = average[2], alpha = 0.5, fill = "grey50") +
+        geom_hline(yintercept = mean) +
+        geom_hline(yintercept = average[1]) +
+        geom_hline(yintercept = average[2])
+        #annotate("text", y = mean, x = length(chcData()$name)+.75, label = "Average")
+    } else if (chcRangeVisualisation == "Standard Deviations") {
+      p <- p +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (3 * sd), ymax = mean + (3 * sd), alpha = 0.5, fill = "grey70") +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (2 * sd), ymax = mean + (2 * sd), alpha = 0.5, fill = "grey60") +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (1 * sd), ymax = mean + (1 * sd), alpha = 0.5, fill = "grey50") +
+        geom_hline(yintercept = mean) +
+        geom_hline(yintercept = mean - sd) +
+        geom_hline(yintercept = mean + sd) +
+        geom_hline(yintercept = mean - (3 * sd)) +
+        geom_hline(yintercept = mean + (3 * sd)) +
+        geom_hline(yintercept = mean - (2 * sd)) +
+        geom_hline(yintercept = mean + (2 * sd))
+    } else if (chcRangeVisualisation == "Wechsler") {
+      p <- p +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (4 * 10), ymax = mean + (4 * 10), alpha = 0.5, fill = "grey70") +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (3 * 10), ymax = mean + (3 * 10), alpha = 0.5, fill = "grey60") +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (2 * 10), ymax = mean + (2 * 10), alpha = 0.5, fill = "grey50") +
+        geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (1 * 10), ymax = mean + (1 * 10), alpha = 0.5, fill = "grey40") +
+        geom_hline(yintercept = mean) +
+        geom_hline(yintercept = mean - 10) +
+        geom_hline(yintercept = mean + 10) +
+        geom_hline(yintercept = mean - (4 * 10)) +
+        geom_hline(yintercept = mean + (4 * 10)) +
+        geom_hline(yintercept = mean - (3 * 10)) +
+        geom_hline(yintercept = mean + (3 * 10)) +
+        geom_hline(yintercept = mean - (2 * 10)) +
+        geom_hline(yintercept = mean + (2 * 10))
+    }
+      
+    # Add Theme Elements
+    p <- p + theme(plot.title = element_text(size = 16, face = "bold"),
+                   axis.text = element_text(size = 12),
+                   axis.title = element_text(size = 14, face = "bold"))
     
     # Place the breaks and limits on the plot
     p <- p + scale_y_continuous(breaks = breaks, limits = limits, expand = c(0,0))
@@ -985,7 +1027,6 @@ server <- function(input, output, session) {
     
     # Plot main data
     p <- ggplot(data, aes(x = name, y = value, ymin = value - (sem * z), ymax = value + (sem * z)))
-    
     
     # Add annotations and ranges
     p <- p + coord_flip() +

@@ -2,12 +2,14 @@ PlotOptions <- function(tool = NULL,
                         sortoptions = c("Default", "Alphabetical"), 
                         colourselection = c("Type (ACH/COG)"),
                         yearlabels = c("Yes"),
+                        ranges = c("No", "Average"),
                         confidence = FALSE,
                         bartype = FALSE,
                         datalabels = FALSE,
                         yearlabel = FALSE,
                         normalcurve = FALSE,
                         presentationtype = FALSE,
+                        rangevis = FALSE,
                         organise = FALSE,
                         chclabels = FALSE,
                         coloursetup = FALSE,
@@ -20,12 +22,14 @@ PlotOptions <- function(tool = NULL,
   #   sortoptions: a vector of strings labelling different ways to sort the plot, default is "Default" and "Alphabetical"
   #   colourselection: a vector of strings labelling different ways to colour the plot, default is "Type"
   #   yearlabels: a vector to determine if options should be provided for year labels, default is "No" and "Yes"
+  #   ranges: a vector to determine if options should be provided for ranges, default is "No" and "Average"
   #   confidence: boolean to determine if confidnece interval options should be available, default is FALSE
   #   bartype: boolean to determine bar type options should be available, default is FALSE
   #   datalabels: boolean to determine if data label options should be available, default is FALSE
   #   yearlabel: boolean to determine if year label options should be available, default is FALSE
   #   normalcurve: boolean to determine if a normal curve option should be available, default is FALSE
   #   presentationtype: boolean to determine if plot and scores should be transformed (e.g. z, standard score, etc), default is FALSE
+  #   rangvis: boolean to determine if plot should have range visualisaitons options, default is FALSE
   #   organise: boolean to determine if organisation options should be available, default is FALSE
   #   chclabels: boolean to determine if chclabel options should be available (suitable only for CHC data), default is false
   #   coloursetup: boolean to determine if colour options should be available, default is false
@@ -155,6 +159,15 @@ PlotOptions <- function(tool = NULL,
     NULL
   }
   
+  option12 <- if(rangevis == TRUE) {
+    selectInput(paste0(tool,"RangeVisualisation"), "Range Visualisation", choices = ranges, multiple = FALSE, selected = "No") %>%
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Visualise each score range using these options.", placement = "left"))
+  } else {
+    NULL
+  }
+  
   # Put options into a taglist
   tagList(
     tags$h3("Step 8: Plot Options"),
@@ -166,7 +179,8 @@ PlotOptions <- function(tool = NULL,
     option4, 
     option5, 
     option6, 
-    option7, 
+    option7,
+    option12,
     option8, 
     option9, 
     option10, 
