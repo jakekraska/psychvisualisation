@@ -80,9 +80,7 @@ ui <- navbarPage(
                            uiOutput("connersForms"),
                            uiOutput("connersAxDates")),
                     column(width = 3,
-                           uiOutput("connersInputs"),
-                           textOutput("connersValues"),
-                           textOutput("connersSEM")),
+                           uiOutput("connersInputs")),
                     column(width = 3,
                            uiOutput("connersPlotOptions"),
                            uiOutput("connersColourOptions"),
@@ -167,7 +165,7 @@ server <- function(input, output, session) {
   conners <- reactive({
     conners <- read_csv("conners.csv")
     conners[is.na(conners)] <- 0
-    conners$name <- paste(conners$form, conners$scale, sep = " ")
+    conners$name <- paste0(conners$form, " ", conners$scale)
     conners <- if(input$assesseeGender == "Female") {
       select(conners, form, scale, name, scoretype, minage, maxage, starts_with("fsem", ignore.case = TRUE))
     } else if (input$assesseeGender == "Male") {
@@ -175,7 +173,6 @@ server <- function(input, output, session) {
     }
     conners
   })
-  
   
   #### Instructions ####
   
@@ -892,8 +889,8 @@ server <- function(input, output, session) {
     tagList(
       tags$h3("Step 4: Select Age of Client"),
       tags$hr(),
-      lapply(input$connersForms, function(i){
-        sliderInput(paste(i,"ConnersAge", sep = ""), paste("Age at Completion of", i, sep = " "), value = 6, min = 6, max = 18, step = 1)
+      lapply(input$connersForms, function(form){
+        sliderInput(paste0(form,"ConnersAge"), paste0("Age at completion of ", form, " Report Form"), value = 6, min = 6, max = 18, step = 1)
       })
     )
   })
@@ -906,10 +903,10 @@ server <- function(input, output, session) {
       tags$h3("Step 5: Input Scores"),
       tags$hr(),
       lapply(input$connersForms, function(i){
-        data <- filter(conners(), form == i)
+        dataSubset <- filter(conners(), form == i)
         tagList(
           tags$h4(paste0(i," Report Form Scores")),
-          lapply(data$name, function(name){
+          lapply(dataSubset$name, function(name){
             numericInput(paste0(name, " Input"), paste0(name, " Score"), value = 50, min = 0, max = 100)
           }),
           tags$hr()
@@ -944,10 +941,9 @@ server <- function(input, output, session) {
   # Put colours into a vector
   connersColours <- reactive({
     req(input$connersForms)
-    connersColours <- lapply(1:length(input$connersForms), function(i) {
+    connersColours <- sapply(1:length(input$connersForms), function(i) {
       input[[paste0("connersColour",i)]]
     })
-    unlist(connersColours, recursive = FALSE, use.names = TRUE)
   })
   
   #### Conners Data ####
@@ -956,7 +952,7 @@ server <- function(input, output, session) {
     gender <- if (input$assesseeGender == "Male") {"m"} else if (input$assesseeGender == "Female") {"f"} else {stop("Error in Gender.")}
     req(input$connersForms)
     connersData <- lapply(input$connersForms, function(form) {
-      dataSubset <- filter(conners(), form == form)
+      dataSubset <- as.data.frame(filter(conners(), form == form))
       connersData <- lapply(dataSubset$name, function(name) {
         rowref <- which(dataSubset$name == name)
         data.frame(name = name,
