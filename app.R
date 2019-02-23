@@ -120,9 +120,11 @@ server <- function(input, output, session) {
       dateInput("assesseeDOB", "Date of Birth", max = Sys.Date() + 1, format = "dd/mm/yyyy", value = "2013-01-01") %>% 
         bs_embed_tooltip(title = "Input the assessee's DOB. This allows the application to calculate
                        the appropriate confidence intervals for each visualisation.", placement = "right"),
-      radioButtons("assesseeGender", "Gender", choices = c("Female", "Male"), inline = TRUE) %>% 
-        bs_embed_tooltip(title = "Input the assessee's gender This allows the application to calculate
-                       the appropriate confidence intervals for the Conners visualisation.", placement = "right"),
+      selectInput("assesseeGender", "Gender", choices = c("Female", "Male"), selected = "Female", multiple = FALSE) %>% 
+        shinyInput_label_embed(
+          icon("question") %>%
+            bs_embed_tooltip(title = "Input the assessee's gender This allows the application to calculate
+                       the appropriate confidence intervals for the Conners visualisation.", placement = "right")),
       selectInput("norms", "Norms", choices = c("Australian", "US"), selected = "Australian", multiple = FALSE) %>%
         shinyInput_label_embed(
           icon("question") %>%
@@ -768,7 +770,7 @@ server <- function(input, output, session) {
         geom_hline(yintercept = mean) +
         geom_hline(yintercept = average[1]) +
         geom_hline(yintercept = average[2])
-        #annotate("text", y = mean, x = length(chcData()$name)+.75, label = "Average")
+      #annotate("text", y = mean, x = length(chcData()$name)+.75, label = "Average")
     } else if (chcRangeVisualisation == "Standard Deviations") {
       p <- p +
         geom_rect(xmin = -Inf, xmax = Inf, ymin = mean - (3 * sd), ymax = mean + (3 * sd), alpha = 0.5, fill = "grey70") +
@@ -797,7 +799,7 @@ server <- function(input, output, session) {
         geom_hline(yintercept = mean - (2 * 10)) +
         geom_hline(yintercept = mean + (2 * 10))
     }
-      
+    
     # Add Theme Elements
     p <- p + theme(plot.title = element_text(size = 16, face = "bold"),
                    axis.text = element_text(size = 12),

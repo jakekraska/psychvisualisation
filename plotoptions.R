@@ -55,18 +55,22 @@ PlotOptions <- function(tool = NULL,
   # Determine which options to show
   option1 <- if(confidence == TRUE) {
     ci <- data.frame(ci = c(99.7,99.0,98.0,95.0,90.0,80.0,75.0,68.0), z = c(3,2.576,2.326,1.96,1.645,1.282,1.15,1))
-    radioButtons(paste0(tool,"Confidence"), "Confidence Interval %", choices = ci$ci, inline = TRUE, selected = "95") %>% 
-      bs_embed_tooltip(title = "This option allows you to change the confidence interval of the bars. This relies on the 
-                       appropriate normative data for the nationality you have selected.", placement = "left")
+    selectInput(paste0(tool,"Confidence"), "Confidence Interval %", choices = ci$ci, selected = "95", multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "This option allows you to change the confidence interval of the bars. This relies on the 
+                       appropriate normative data for the nationality you have selected.", placement = "left"))
   } else {
     NULL
   }
   
   option2 <- if(bartype == TRUE) {
-    radioButtons(paste0(tool,"PlotType"), "Plot Type", choices = c("Bar", "Line"), inline = TRUE)%>% 
-      bs_embed_tooltip(title = "Bar: Visualises confidence intervals as solid bars with the score
+    selectInput(paste0(tool,"PlotType"), "Plot Type", choices = c("Bar", "Line"), selected = "Bar", multiple = FALSE) %>%
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Bar: Visualises confidence intervals as solid bars with the score
                        represented by a thick line in the middle. Line: Visualises confidence intervals
-                       as lines with vertical ends and a symbol in the centre as a score.", placement = "left")
+                       as lines with vertical ends and a symbol in the centre as a score.", placement = "left"))
   } else {
     NULL
   }
@@ -95,34 +99,42 @@ PlotOptions <- function(tool = NULL,
   }
   
   option4 <- if(bartype == TRUE) {
-    radioButtons(paste0(tool,"DataLabels"), "Score Labels", choices = c("None", "Scores", "Scores + CI"), inline = TRUE) %>% 
-      bs_embed_tooltip(title = "None: No scores will be represented on the visualisation. Scores: Only the main scores will be
+    selectInput(paste0(tool,"DataLabels"), "Score Labels", choices = c("None", "Scores", "Scores + CI"), selected = "None", multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "None: No scores will be represented on the visualisation. Scores: Only the main scores will be
                        represented on the visualisation. Scores + CI: Both the scores and the ends of the confidence intervals
-                       will be represented on the visualisation.", placement = "left")
+                       will be represented on the visualisation.", placement = "left"))
   } else {
     NULL
   }
   
   option5 <- if(yearlabel == TRUE) {
-    radioButtons(paste0(tool,"YearLabel"), "Append Year of Assessment to Scale Labels", choices = yearlabels, inline = TRUE) %>% 
-      bs_embed_tooltip(title = "Select whether the year the test was administered should be included in the scale name.", placement = "left")
+    selectInput(paste0(tool,"YearLabel"), "Append Year of Assessment to Scale Labels", choices = yearlabels, multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Select whether the year the test was administered should be included in the scale name.", placement = "left"))
   } else {
     NULL
   }
   
   option6 <- if(normalcurve == TRUE) {
-    radioButtons(paste0(tool,"Norm"), "Normal Curve", choices = c("No", "Yes"), inline = TRUE) %>% 
-      bs_embed_tooltip(title = "Select whether you want a normal curve plotted behind the visualisation.", placement = "left")
+    selectInput(paste0(tool,"Norm"), "Normal Curve", choices = c("No", "Yes"), multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Select whether you want a normal curve plotted behind the visualisation.", placement = "left"))
   } else {
     NULL
   }
   
   option7 <- if(presentationtype == TRUE) {
     scoreTypes <- c("Z" = "z","Standard Score" = "standard", "Scaled Score" = "scaled", "T-Score" = "t-score")
-    radioButtons(paste0(tool,"PresentationType"), "Score Type to Plot", choices = scoreTypes, selected = "standard", inline = TRUE) %>% 
-      bs_embed_tooltip(title = "Changes the scale of the plot and transforms all scores and confidence intervals appropriately. Z scores have a mean
+    selectInput(paste0(tool,"PresentationType"), "Score Type to Plot", choices = scoreTypes, selected = "standard", multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Changes the scale of the plot and transforms all scores and confidence intervals appropriately. Z scores have a mean
                        of 0 and SD of 1, Standard Scores have a mean of 100 and SD of 15, Scaled Scores have a mean of 10 and SD of 2, and T-Scores
-                       have a mean of 50 and SD of 10.", placement = "left")
+                       have a mean of 50 and SD of 10.", placement = "left"))
   } else {
     NULL
   }
@@ -137,15 +149,19 @@ PlotOptions <- function(tool = NULL,
   }
   
   option9 <- if(chclabels == TRUE) {
-    radioButtons("chcLabels", "CHC Labels", choices = c("No","Name","Acronym","Name + Acronym"), inline = TRUE) %>% 
-      bs_embed_tooltip(title = "Select whether you want the CHC factor names added to the scale names for each composite/subtest.", placement = "left")
+    selectInput("chcLabels", "CHC Labels", choices = c("No","Name","Acronym","Name + Acronym"), multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Select whether you want the CHC factor names added to the scale names for each composite/subtest.", placement = "left"))
   } else {
     NULL
   }
   
   option10 <- if(coloursetup == TRUE) {
-    radioButtons(paste0(tool,"ColourSetup"), "Colour Scores", choices = colourselection, inline = TRUE) %>% 
-      bs_embed_tooltip(title = "Determine what categories you want the visualisation to be represented by different colours.", placement = "left")
+    selectInput(paste0(tool,"ColourSetup"), "Colour Scores", choices = colourselection, multiple = FALSE) %>% 
+      shinyInput_label_embed(
+        icon("question") %>%
+          bs_embed_tooltip(title = "Determine what categories you want the visualisation to be represented by different colours.", placement = "left"))
   } else {
     NULL
   }
