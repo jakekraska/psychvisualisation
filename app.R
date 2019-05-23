@@ -183,7 +183,7 @@ server <- function(input, output, session) {
       tags$h3("Step 2: Select Visualisation Tools"),
       tags$p("Use the navigation bar at the top of this page to select whether you want to visualise:"),
       tags$ul(
-        tags$li("CHC data from cognitive ability and academic achievemnet tests"),
+        tags$li("CHC data from cognitive ability and academic achievement tests"),
         tags$li("Conners-3 data")
       ),
       tags$p("On each tab ensure you have the correct Tests, Indexes, Subtests and Options selected prior to visualising.",
