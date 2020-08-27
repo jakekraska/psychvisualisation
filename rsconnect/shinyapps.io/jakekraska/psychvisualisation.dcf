@@ -1,0 +1,12 @@
+name: psychvisualisation
+title: psychvisualisation
+username:
+account: jakekraska
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 646268
+bundleId: 3505815
+url: https://jakekraska.shinyapps.io/psychvisualisation/
+when: 1597230519.46345
+asMultiple: FALSE
+asStatic: FALSE

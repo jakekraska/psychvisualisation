@@ -54,8 +54,8 @@ ui <- navbarPage(
   tabPanel("CHC",
            fluidRow(column(width = 3,
                            uiOutput("chcMainAssessment"),
-                           uiOutput("chcAdditionalAssessments"),
-                           uiOutput("chcAdditionalAxDates"),
+                           uiOutput("chcPreviousAssessments"),
+                           uiOutput("chcPreviousAxDates"),
                            uiOutput("chcTests")),
                     column(width = 3,
                            uiOutput("chcComposites"),
@@ -217,19 +217,19 @@ server <- function(input, output, session) {
     )
   })
   
-  #### CHC Number of Additional Assessments ####
+  #### CHC Number of Previous Assessments ####
   
-  output$chcAdditionalAssessments <- renderUI({
+  output$chcPreviousAssessments <- renderUI({
     tagList(
-      tags$h3("Step 4: Additional Assessments"),
+      tags$h3("Step 4: Previous Assessments"),
       tags$hr(),
-      sliderInput("chcNAdditionalAx", "Number of Additional Assessments",value = 0, min = 0, max = 5, step = 1) %>%
+      sliderInput("chcNPreviousAx", "Number of Previous Assessments",value = 0, min = 0, max = 5, step = 1) %>%
         shinyInput_label_embed(
           icon("question") %>%
             bs_embed_tooltip(
-              title = "Input the number of additional assessments if applicable. For example, if
+              title = "Input the number of previous assessments if applicable. For example, if
               the client was assessed two years ago and you have a report that includes a WISC-V 
-              and a WIAT-III, select 1 additional assessment.", placement = "right")),
+              and a WIAT-III, select 1 previous assessment.", placement = "right")),
       tags$hr()
     )
   })
@@ -237,40 +237,43 @@ server <- function(input, output, session) {
   #### CHC Number of Assessments ####
   
   chcNAssessments <- reactive({
-    input$chcNAdditionalAx + 1
+    input$chcNPreviousAx + 1
   })
   
-  #### CHC Additional Date Inputs ####
+  #### CHC Previous Date Inputs ####
   
   chcRandomDates <- reactive({
     min <- format(input$assesseeDOB,"%Y")
     min <- as.numeric(min) + 1
     max <- format(Sys.Date(), "%Y")
     max <- as.numeric(max) - 1
-    sample(min:max, input$chcNAdditionalAx)
+    sample(min:max, input$chcNPreviousAx)
   })
   
-  output$chcAdditionalAxDates <- renderUI({
+  output$chcPreviousAxDates <- renderUI({
     hide("chcPlot")
     hide("downloadCHCPlot")
+    req(chcNAssessments())
     if (chcNAssessments() > 1) {
-      lapply(1:input$chcNAdditionalAx, function(i) {
-        dateInput(paste0("chcAssessmentDate",i+1),"Assessment Date",value = paste0(chcRandomDates()[i],"-01-01"), max = Sys.Date() + 1, format = "dd/mm/yyyy") %>% 
-          bs_embed_tooltip(title = "Input the date of the additional assesssment you would like to visualise. As with the main assessment date, 
+      lapply(1:input$chcNPreviousAx, function(i) {
+        dateInput(paste0("chcAssessmentDate",i+1),"Previous Assessment Date",value = paste0(chcRandomDates()[i],"-01-01"), max = Sys.Date() + 1, format = "dd/mm/yyyy") %>% 
+          bs_embed_tooltip(title = "Input the date of the previous assesssment you would like to visualise. As with the main assessment date, 
                            this date may represent multiple tests within an assessment.", placement = "right")
-      })
+      }) 
+    } else {
+      
     }
   })
   
   #### CHC Calculate Age ####
   
   chcAges <- reactive({
-    req(input$assesseeDOB,input$chcAxDate,1,input$chcNAdditionalAx)
+    req(input$assesseeDOB,input$chcAxDate,1,input$chcNPreviousAx)
     if (chcNAssessments() == 1) {
       floor(age_calc(input$assesseeDOB, input$chcAxDate))
     } else if (chcNAssessments() > 1) {
       firstage <- floor(age_calc(input$assesseeDOB, input$chcAxDate))
-      extraages <- sapply(1:input$chcNAdditionalAx, function(i) {
+      extraages <- sapply(1:input$chcNPreviousAx, function(i) {
         floor(age_calc(input$assesseeDOB, input[[paste0("chcAssessmentDate",i+1)]]))
       })
       c(firstage,extraages)
@@ -288,7 +291,7 @@ server <- function(input, output, session) {
       tags$h3("Step 5: Select Tests"),
       tags$hr(),
       tags$p("Select the tests that you administered as part of this assessment.
-             If you indicated that there were additional assessments, input boxes 
+             If you indicated that there were previous assessments, input boxes 
              will be avaiable for those dates."),
       lapply(1:chcNAssessments(), function(i){
         if (i == 1) {
@@ -312,6 +315,7 @@ server <- function(input, output, session) {
   
   # Check to see if all assessment fields have at least one test
   chcTestsCheck <- reactive({
+    req(chcNAssessments)
     check <- sapply(1:chcNAssessments(), function(i){
       chcTestsID <- paste0("chcTests",i)
       if (is.null(input[[chcTestsID]]) || input[[chcTestsID]] == "") {FALSE} else {TRUE} 
@@ -803,7 +807,9 @@ server <- function(input, output, session) {
     # Add Theme Elements
     p <- p + theme(plot.title = element_text(size = 16, face = "bold"),
                    axis.text = element_text(size = 12),
-                   axis.title = element_text(size = 14, face = "bold"))
+                   axis.title = element_text(size = 14, face = "bold")) +
+      ylab("Composite/Subtest") +
+      xlab("Score")
     
     # Place the breaks and limits on the plot
     p <- p + scale_y_continuous(breaks = breaks, limits = limits, expand = c(0,0))
